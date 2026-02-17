@@ -12,26 +12,12 @@ export default function PublishButton({ onOpenSettings }) {
 
   const hasToken = !!localStorage.getItem("memoire_github_token");
 
-  const handlePublishRef = useCallback(() => {
-    if (status !== "loading") handlePublish();
-  }, [status, hasToken, chapters]);
-
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      if (e.altKey && (e.key === "p" || e.key === "P")) {
-        e.preventDefault();
-        handlePublishRef();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handlePublishRef]);
-
-  const handlePublish = async () => {
+  const handlePublish = useCallback(async () => {
     if (!hasToken) {
       onOpenSettings();
       return;
     }
+    if (status === "loading") return;
     setStatus("loading");
     setShowResult(false);
     try {
@@ -52,7 +38,18 @@ export default function PublishButton({ onOpenSettings }) {
         setShowResult(false);
       }, 6000);
     }
-  };
+  }, [hasToken, status, chapters, onOpenSettings]);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.altKey && (e.key === "p" || e.key === "P")) {
+        e.preventDefault();
+        handlePublish();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handlePublish]);
 
   const bgColor = {
     idle: hasToken ? "rgba(74,222,128,0.1)" : "rgba(232,196,160,0.1)",
