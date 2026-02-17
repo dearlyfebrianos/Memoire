@@ -8,7 +8,7 @@ export const chapters = [
     coverGradient: "from-slate-900/40 to-gray-900/30",
     accentColor: "#f472b6",
     emoji: "🌸",
-    hidden: false,
+    hidden: true,
     photos: [
       {
         id: 1771325247206.3179,
@@ -16,10 +16,10 @@ export const chapters = [
         caption: "Foto kenangan kami ketika sesudah berolahraga dan kami menuju ke kenjeran untuk rehat sejenak",
         mediaItems: [
           { type: "image", url: "https://i.ibb.co.com/HT8G9WMc/Whats-App-Image-2026-02-17-at-17-42-16.jpg" },
-          { type: "image", url: "https://i.ibb.co.com/tPh5W8DP/4.jpg" },
+          { type: "image", url: "https://i.ibb.co.com/tPh5W8DP/4.jpg" }
         ],
-        date: "Februari 2026",
-        tags: ["girl friend", "boy friend"],
+        date: "9, Februari 2026",
+        tags: ["girl friend", "boy friend", "foto bersama"],
         hidden: false,
       }
     ],
