@@ -1,113 +1,51 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const IMGBB_KEY_STORAGE = "memoire_imgbb_key";
-const PIXELDRAIN_KEY_STORAGE = "memoire_pixeldrain_key";
+const CLOUDINARY_CLOUD_NAME = "memoire_cloudinary_name";
+const CLOUDINARY_PRESET = "memoire_cloudinary_preset";
 const ACCENT = "#e8c4a0";
 
-function getImgbbKey() {
-  return localStorage.getItem(IMGBB_KEY_STORAGE) || "";
+function getCloudinaryName() {
+  return localStorage.getItem(CLOUDINARY_CLOUD_NAME) || "dg3awuzug";
 }
 
-function getPixeldrainKey() {
-  return localStorage.getItem(PIXELDRAIN_KEY_STORAGE) || "";
+function getCloudinaryPreset() {
+  return localStorage.getItem(CLOUDINARY_PRESET) || "ml_default";
 }
 
-async function uploadToImgBB(file, apiKey) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const base64 = reader.result.split(",")[1];
-        const formData = new FormData();
-        formData.append("key", apiKey);
-        formData.append("image", base64);
-        formData.append("name", file.name.replace(/\.[^/.]+$/, ""));
-
-        const res = await fetch("https://api.imgbb.com/1/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err?.error?.message || "Upload gagal");
-        }
-
-        const data = await res.json();
-        console.log("ImgBB Response:", data); // Helpful for the user to debug in console
-
-        // ImgBB API structure:
-        // data.data.image.url -> Direct raw image link (i.ibb.co)
-        // data.data.display_url -> Direct display link (usually same as i.ibb.co)
-        // data.data.url -> Often the VIEWER page link (ibb.co)
-
-        const direct =
-          data.data.image?.url || data.data.display_url || data.data.url;
-        const viewer = data.data.url_viewer || data.data.url;
-
-        resolve({
-          url: viewer,
-          directUrl: direct,
-          thumbUrl: data.data.thumb?.url || direct,
-          deleteUrl: data.data.delete_url,
-          filename: file.name,
-          size: file.size,
-          width: data.data.width,
-          height: data.data.height,
-          type: "image",
-        });
-      } catch (e) {
-        reject(e);
-      }
-    };
-    reader.onerror = () => reject(new Error("Gagal membaca file"));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function uploadToPixeldrain(file, apiKey) {
+async function uploadToCloudinary(file, cloudName, uploadPreset) {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
 
-  const headers = {};
-  if (apiKey) {
-    // Pixeldrain uses Basic Auth: user="", password=api_key
-    headers["Authorization"] = "Basic " + btoa(":" + apiKey);
-  }
+  const isVideo = file.type.startsWith("video/");
+  const resourceType = isVideo ? "video" : "image";
 
-  const res = await fetch("https://pixeldrain.com/api/file", {
-    method: "POST",
-    body: formData,
-    headers,
-    credentials: "omit",
-  });
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
 
   if (!res.ok) {
-    const errorText = await res.text();
-    console.error("Pixeldrain error:", errorText);
-
-    if (res.status === 401) {
-      throw new Error(
-        "Pixeldrain Error: API Key tidak valid atau diperlukan. Pastikan kamu sudah memasukkan API Key di pengaturan.",
-      );
-    }
-
-    throw new Error(`Gagal upload video: ${res.status} ${res.statusText}`);
+    const err = await res.json();
+    console.error("Cloudinary error:", err);
+    throw new Error(
+      err?.error?.message || `Gagal upload ${resourceType} ke Cloudinary`,
+    );
   }
 
   const data = await res.json();
-  const fileId = data.id;
-
-  // Pixeldrain direct link structure: https://pixeldrain.com/api/file/[id]
-  // This link works well for <video> tags
   return {
-    url: `https://pixeldrain.com/u/${fileId}`,
-    directUrl: `https://pixeldrain.com/api/file/${fileId}`,
-    thumbUrl: "", // Pixeldrain doesn't provide easy thumbnails for video via API
+    url: data.secure_url,
+    directUrl: data.secure_url,
+    thumbUrl:
+      data.thumbnail_url || (resourceType === "image" ? data.secure_url : ""),
     filename: file.name,
     size: file.size,
-    type: "video",
+    type: resourceType,
   };
 }
 
@@ -118,10 +56,10 @@ function formatFileSize(bytes) {
 }
 
 export default function LinkGenerator({ onClose }) {
-  const [apiKey, setApiKey] = useState(getImgbbKey());
-  const [pdKey, setPdKey] = useState(getPixeldrainKey());
+  const [cloudName, setCloudName] = useState(getCloudinaryName());
+  const [preset, setPreset] = useState(getCloudinaryPreset());
   const [showSetup, setShowSetup] = useState(
-    !getImgbbKey() || !getPixeldrainKey(),
+    !getCloudinaryName() || !getCloudinaryPreset(),
   );
   const [files, setFiles] = useState([]);
   const [uploadQueue, setUploadQueue] = useState([]);
@@ -131,8 +69,8 @@ export default function LinkGenerator({ onClose }) {
   const fileInputRef = useRef(null);
 
   const handleSaveKeys = () => {
-    localStorage.setItem(IMGBB_KEY_STORAGE, apiKey.trim());
-    localStorage.setItem(PIXELDRAIN_KEY_STORAGE, pdKey.trim());
+    localStorage.setItem(CLOUDINARY_CLOUD_NAME, cloudName.trim());
+    localStorage.setItem(CLOUDINARY_PRESET, preset.trim());
     setShowSetup(false);
   };
 
@@ -164,37 +102,12 @@ export default function LinkGenerator({ onClose }) {
       const item = uploadQueue[0];
       if (!item) return;
 
-      const key = getImgbbKey();
-
-      // If image but no key, skip and mark as error
-      if (item.type === "image" && !key) {
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === item.id
-              ? {
-                  ...f,
-                  status: "error",
-                  error: "Setup API Key dulu untuk upload gambar.",
-                }
-              : f,
-          ),
-        );
-        setShowSetup(true);
-        setUploadQueue((prev) => prev.slice(1));
-        return;
-      }
-
-      setFiles((prev) =>
-        prev.map((f) => (f.id === item.id ? { ...f, status: "uploading" } : f)),
-      );
-
       try {
-        let result;
-        if (item.type === "image") {
-          result = await uploadToImgBB(item.file, getImgbbKey());
-        } else {
-          result = await uploadToPixeldrain(item.file, getPixeldrainKey());
-        }
+        const result = await uploadToCloudinary(
+          item.file,
+          getCloudinaryName(),
+          getCloudinaryPreset(),
+        );
 
         setFiles((prev) =>
           prev.map((f) =>
@@ -413,80 +326,71 @@ export default function LinkGenerator({ onClose }) {
                       border: "1px solid rgba(56,189,248,0.15)",
                     }}
                   >
-                    <div
-                      className="p-3 rounded-xl"
-                      style={{
-                        background: "rgba(232,196,160,0.06)",
-                        border: "1px solid rgba(232,196,160,0.15)",
-                      }}
+                    <p
+                      className="font-body text-xs leading-relaxed"
+                      style={{ color: "rgba(232,196,160,0.8)" }}
                     >
-                      <p
-                        className="font-body text-xs leading-relaxed"
-                        style={{ color: "rgba(232,196,160,0.8)" }}
-                      >
-                        <strong>Info Upload:</strong>
-                        <br />
-                        - **Gambar:** Menggunakan ImgBB (perlu API Key).
-                        <br />- **Video:** Menggunakan Pixeldrain (Otomatis,
-                        tanpa setup).
-                      </p>
-                    </div>
+                      <strong>Info Upload:</strong>
+                      <br />
+                      - **Media:** Menggunakan Cloudinary (Gambar & Video).
+                      <br />- **Requirement:** Perlu Cloud Name & Preset
+                      (Unsigned).
+                      <span className="block mt-1 opacity-60">
+                        ImgBB & Pixeldrain ditiadakan karena sering mengalami
+                        masalah koneksi SSL/CORS di beberapa jaringan.
+                      </span>
+                    </p>
 
                     <div className="space-y-4">
-                      <div>
-                        <label
-                          className="block font-body text-xs mb-2 uppercase tracking-widest"
-                          style={{ color: "rgba(255,255,255,0.4)" }}
-                        >
-                          ImgBB API Key (Gambar)
-                        </label>
-                        <input
-                          style={inputStyle}
-                          type="text"
-                          placeholder="Paste ImgBB Key..."
-                          value={apiKey}
-                          onChange={(e) => setApiKey(e.target.value)}
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          className="block font-body text-xs mb-2 uppercase tracking-widest"
-                          style={{ color: "rgba(255,255,255,0.4)" }}
-                        >
-                          Pixeldrain API Key (Video)
-                        </label>
-                        <div className="flex gap-2">
+                      <div
+                        className="p-3 rounded-xl space-y-3"
+                        style={{ background: "rgba(255,255,255,0.03)" }}
+                      >
+                        <div>
+                          <label
+                            className="block font-body text-[10px] mb-1.5 uppercase tracking-widest"
+                            style={{ color: "rgba(255,255,255,0.3)" }}
+                          >
+                            Cloudinary Cloud Name
+                          </label>
                           <input
                             style={inputStyle}
-                            type="password"
-                            placeholder="Paste Pixeldrain API Key..."
-                            value={pdKey}
-                            onChange={(e) => setPdKey(e.target.value)}
+                            type="text"
+                            placeholder="Contoh: dxabc123"
+                            value={cloudName}
+                            onChange={(e) => setCloudName(e.target.value)}
                           />
-                          <button
-                            onClick={handleSaveKeys}
-                            className="shrink-0 px-5 py-2.5 rounded-xl font-body text-sm transition-all"
-                            style={{
-                              background: "rgba(56,189,248,0.12)",
-                              border: "1px solid rgba(56,189,248,0.3)",
-                              color: "#38bdf8",
-                            }}
-                          >
-                            Simpan
-                          </button>
                         </div>
-                        <p className="mt-2 text-[10px] opacity-40 font-body">
-                          Dapatkan link di{" "}
-                          <a
-                            href="https://pixeldrain.com/user/settings"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="underline"
+
+                        <div>
+                          <label
+                            className="block font-body text-[10px] mb-1.5 uppercase tracking-widest"
+                            style={{ color: "rgba(255,255,255,0.3)" }}
                           >
-                            pengaturan Pixeldrain
-                          </a>
-                        </p>
+                            Cloudinary Upload Preset (Unsigned)
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              style={inputStyle}
+                              type="text"
+                              placeholder="Contoh: ml_default"
+                              value={preset}
+                              onChange={(e) => setPreset(e.target.value)}
+                            />
+                            <button
+                              onClick={handleSaveKeys}
+                              disabled={!cloudName.trim() || !preset.trim()}
+                              className="shrink-0 px-5 py-2.5 rounded-xl font-body text-sm transition-all"
+                              style={{
+                                background: "rgba(56,189,248,0.12)",
+                                border: "1px solid rgba(56,189,248,0.3)",
+                                color: "#38bdf8",
+                              }}
+                            >
+                              Simpan
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -561,7 +465,7 @@ export default function LinkGenerator({ onClose }) {
                     className="font-body text-xs"
                     style={{ color: "rgba(255,255,255,0.25)" }}
                   >
-                    Video otomatis di-host di Pixeldrain
+                    Media otomatis di-host di Cloudinary
                   </p>
                 </div>
               </div>
