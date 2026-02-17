@@ -6,7 +6,7 @@ import AddPhotoModal from "./AddPhotoModal";
 import AddChapterModal from "./AddChapterModal";
 import EditPhotoModal from "./EditPhotoModal";
 import PublishButton from "./PublishButton";
-import GitHubSettings from './GitHubSettings';
+import GitHubSettings from "./GithubSettings";
 
 const ACCENT = "#e8c4a0";
 
