@@ -133,6 +133,19 @@ export const chapters = [
         tags: ["milestone", "farewell"],
       }
     ],
+  },
+  {
+    id: "test-phone",
+    label: "test phone",
+    slug: "test-phone",
+    years: "2027 - 2030",
+    description: "TENTANG SAYA DIKAPAL TANKER",
+    coverGradient: "from-slate-900/40 to-gray-900/30",
+    accentColor: "#f87171",
+    emoji: "🌊",
+    photos: [
+
+    ],
   }
 ];
 
