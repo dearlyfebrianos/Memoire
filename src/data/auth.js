@@ -6,7 +6,7 @@ const CREDENTIALS = [
   },
   {
     username: "admin",
-    password: "memoireadmin206",
+    password: "memoireadmin2026",
     role: "admin",
   },
 ];
