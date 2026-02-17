@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
+import { isLoggedIn } from "../../data/auth";
 
 export default function AdminGuard({ children }) {
-  const isAdmin = sessionStorage.getItem("memoire_admin") === "true";
-  if (!isAdmin) return <Navigate to="/admin" replace />;
+  if (!isLoggedIn()) return <Navigate to="/admin" replace />;
   return children;
 }
