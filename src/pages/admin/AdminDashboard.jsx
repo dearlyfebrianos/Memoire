@@ -670,38 +670,6 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
 
-        {!isOwnerRole && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 px-5 py-3.5 rounded-xl flex items-center gap-3"
-            style={{
-              background: "rgba(192,132,252,0.06)",
-              border: "1px solid rgba(192,132,252,0.18)",
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#c084fc"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <p
-              className="font-body text-xs"
-              style={{ color: "rgba(192,132,252,0.85)" }}
-            >
-              Kamu login sebagai <strong>Admin</strong>. Kamu tidak bisa melihat
-              atau mengelola konten yang di-hide oleh Owner.
-            </p>
-          </motion.div>
-        )}
-
         {!localStorage.getItem("memoire_github_token") && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
