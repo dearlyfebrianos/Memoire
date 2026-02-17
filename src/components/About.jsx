@@ -2,13 +2,19 @@ import { motion } from "framer-motion";
 import { chapters } from "../data/photos";
 
 export default function About() {
+  const visibleChapters = chapters.filter((c) => !c.hidden);
+  const visiblePhotosCount = visibleChapters.reduce(
+    (sum, c) => sum + c.photos.filter((p) => !p.hidden).length,
+    0,
+  );
+
   const stats = [
     {
-      value: chapters.length.toString(),
+      value: visibleChapters.length.toString(),
       label: "Bab",
     },
     {
-      value: chapters.reduce((sum, c) => sum + c.photos.length, 0).toString(),
+      value: visiblePhotosCount.toString(),
       label: "Kenangan",
     },
     {
