@@ -103,6 +103,7 @@ export function MediaItem({
     <img
       src={url}
       alt={alt}
+      referrerPolicy="no-referrer"
       className={className}
       style={style}
       onLoad={onLoad}

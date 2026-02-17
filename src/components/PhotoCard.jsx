@@ -109,6 +109,7 @@ export default function PhotoCard({
                   src={cover?.url}
                   alt={photo.title}
                   loading="lazy"
+                  referrerPolicy="no-referrer"
                   onLoad={() => setLoaded(true)}
                   onError={() => setImgErr(true)}
                   className="absolute inset-0 w-full h-full object-cover"

@@ -256,6 +256,7 @@ export default function EditPhotoModal({
                       <img
                         src={currentPreview?.url}
                         alt="preview"
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                         onError={() => {}}
                       />

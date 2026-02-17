@@ -9,6 +9,7 @@ import AddChapterModal from "./AddChapterModal";
 import EditPhotoModal from "./EditPhotoModal";
 import PublishButton from "./PublishButton";
 import GitHubSettings from "./GithubSettings";
+import LinkGenerator from "./LinkGenerator";
 
 const ACCENT = "#e8c4a0";
 
@@ -130,6 +131,7 @@ function PhotoThumb({
           <img
             src={cover.url}
             alt={photo.title}
+            referrerPolicy="no-referrer"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setError(true)}
             style={{ display: "block" }}
@@ -312,6 +314,7 @@ function PhotoCard({
           <img
             src={cover.url}
             alt={photo.title}
+            referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
             onError={() => setImgErr(true)}
           />
@@ -517,6 +520,7 @@ export default function AdminDashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [expandedChapter, setExpandedChapter] = useState(null);
   const [showGitHubSettings, setShowGitHubSettings] = useState(false);
+  const [showLinkGenerator, setShowLinkGenerator] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -548,6 +552,10 @@ export default function AdminDashboard() {
           e.preventDefault();
           logout();
           navigate("/admin");
+          break;
+        case "k":
+          e.preventDefault();
+          setShowLinkGenerator(true);
           break;
         default:
           break;
@@ -763,6 +771,29 @@ export default function AdminDashboard() {
               <span>{tab.label}</span>
             </button>
           ))}
+          <button
+            onClick={() => setShowLinkGenerator(true)}
+            title="Link Generator (Alt + K)"
+            className="px-5 py-2.5 rounded-xl font-body text-sm flex items-center gap-2 transition-all duration-300 hover:scale-[1.02]"
+            style={{
+              background: "rgba(56,189,248,0.1)",
+              border: "1px solid rgba(56,189,248,0.3)",
+              color: "#38bdf8",
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+            </svg>
+            <span>Generator Link</span>
+          </button>
         </motion.div>
 
         {activeTab === "overview" && (
@@ -1363,6 +1394,9 @@ export default function AdminDashboard() {
       )}
       {showGitHubSettings && (
         <GitHubSettings onClose={() => setShowGitHubSettings(false)} />
+      )}
+      {showLinkGenerator && (
+        <LinkGenerator onClose={() => setShowLinkGenerator(false)} />
       )}
 
       <AnimatePresence>

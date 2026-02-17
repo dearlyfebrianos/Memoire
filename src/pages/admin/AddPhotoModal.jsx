@@ -495,6 +495,7 @@ export default function AddPhotoModal({ chapters, defaultChapterId, onClose }) {
                                   <img
                                     src={item.url}
                                     alt={`preview-${i}`}
+                                    referrerPolicy="no-referrer"
                                     className="w-full max-h-40 object-cover rounded-xl"
                                     onError={() =>
                                       setMediaErrors((e) => ({
@@ -539,6 +540,7 @@ export default function AddPhotoModal({ chapters, defaultChapterId, onClose }) {
                           <img
                             src={m.url}
                             alt=""
+                            referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
                             onError={() => {}}
                           />
