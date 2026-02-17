@@ -13,40 +13,52 @@ function getCloudinaryPreset() {
   return localStorage.getItem(CLOUDINARY_PRESET) || "ml_default";
 }
 
-async function uploadToCloudinary(file, cloudName, uploadPreset) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
+function uploadToCloudinary(file, cloudName, uploadPreset, onProgress) {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
 
-  const isVideo = file.type.startsWith("video/");
-  const resourceType = isVideo ? "video" : "image";
+    const isVideo = file.type.startsWith("video/");
+    const resourceType = isVideo ? "video" : "image";
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
 
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-    {
-      method: "POST",
-      body: formData,
-    },
-  );
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
 
-  if (!res.ok) {
-    const err = await res.json();
-    console.error("Cloudinary error:", err);
-    throw new Error(
-      err?.error?.message || `Gagal upload ${resourceType} ke Cloudinary`,
-    );
-  }
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        const percentComplete = Math.round((e.loaded / e.total) * 100);
+        onProgress(percentComplete);
+      }
+    };
 
-  const data = await res.json();
-  return {
-    url: data.secure_url,
-    directUrl: data.secure_url,
-    thumbUrl:
-      data.thumbnail_url || (resourceType === "image" ? data.secure_url : ""),
-    filename: file.name,
-    size: file.size,
-    type: resourceType,
-  };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const data = JSON.parse(xhr.responseText);
+        resolve({
+          url: data.secure_url,
+          directUrl: data.secure_url,
+          thumbUrl:
+            data.thumbnail_url ||
+            (resourceType === "image" ? data.secure_url : ""),
+          filename: file.name,
+          size: file.size,
+          type: resourceType,
+        });
+      } else {
+        const err = JSON.parse(xhr.responseText || "{}");
+        reject(
+          new Error(
+            err?.error?.message || `Gagal upload ${resourceType} ke Cloudinary`,
+          ),
+        );
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.send(formData);
+  });
 }
 
 function formatFileSize(bytes) {
@@ -66,6 +78,8 @@ export default function LinkGenerator({ onClose }) {
   const [results, setResults] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+  const [currentProgress, setCurrentProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleSaveKeys = () => {
@@ -100,13 +114,20 @@ export default function LinkGenerator({ onClose }) {
 
     const processNext = async () => {
       const item = uploadQueue[0];
-      if (!item) return;
+      if (!item) {
+        setIsUploading(false);
+        return;
+      }
+
+      setIsUploading(true);
+      setCurrentProgress(0);
 
       try {
         const result = await uploadToCloudinary(
           item.file,
           getCloudinaryName(),
           getCloudinaryPreset(),
+          (p) => setCurrentProgress(p),
         );
 
         setFiles((prev) =>
@@ -123,7 +144,12 @@ export default function LinkGenerator({ onClose }) {
         );
       }
 
-      setUploadQueue((prev) => prev.slice(1));
+      const nextQueue = uploadQueue.slice(1);
+      setUploadQueue(nextQueue);
+      if (nextQueue.length === 0) {
+        // Smooth transition out
+        setTimeout(() => setIsUploading(false), 500);
+      }
     };
 
     processNext();
@@ -591,6 +617,76 @@ export default function LinkGenerator({ onClose }) {
             </button>
           </div>
         </motion.div>
+
+        {/* Loading Splash */}
+        <AnimatePresence>
+          {isUploading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6"
+              style={{
+                background: "rgba(10,10,22,0.85)",
+                backdropFilter: "blur(20px)",
+              }}
+            >
+              <div className="relative flex flex-col items-center gap-8">
+                {/* Rotating Circle */}
+                <div className="relative w-32 h-32">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="w-full h-full rounded-full border-[3px] border-transparent"
+                    style={{
+                      borderTopColor: "#38bdf8",
+                      borderRightColor: "#38bdf8",
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span
+                      className="font-display text-3xl font-light"
+                      style={{ color: "rgba(255,255,255,0.9)" }}
+                    >
+                      {currentProgress}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status Text */}
+                <div className="text-center space-y-2">
+                  <motion.h3
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="font-display text-xl tracking-wider text-white/90"
+                  >
+                    {currentProgress === 100
+                      ? "MEMPROSES..."
+                      : "SEDANG MENGUPLOAD"}
+                  </motion.h3>
+                  <p className="font-body text-sm text-white/40 max-w-[200px]">
+                    {currentProgress === 100
+                      ? "Menyiapkan link untuk kamu..."
+                      : "Mohon tunggu sebentar, file kamu sedang diproses..."}
+                  </p>
+                </div>
+
+                {/* Small indicator bar */}
+                <div className="w-48 h-1 rounded-full overflow-hidden bg-white/5 border border-white/10">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${currentProgress}%` }}
+                    className="h-full bg-gradient-to-r from-sky-400 to-blue-500"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );
