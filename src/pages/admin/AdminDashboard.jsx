@@ -499,8 +499,9 @@ export default function AdminDashboard() {
     togglePhotoHidden,
   } = useStore();
 
-  const chapters = allChapters;
-  const allPhotos = allPhotosRaw;
+  // Owner sees ALL (including hidden). Admin sees only public (non-hidden).
+  const chapters = isOwnerRole ? allChapters : publicChapters;
+  const allPhotos = isOwnerRole ? allPhotosRaw : publicPhotos;
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showAddPhoto, setShowAddPhoto] = useState(false);
@@ -695,8 +696,8 @@ export default function AdminDashboard() {
               className="font-body text-xs"
               style={{ color: "rgba(192,132,252,0.85)" }}
             >
-              Kamu login sebagai <strong>Admin</strong>. Kamu bisa mengelola
-              semua fitur kecuali hide/unhide konten.
+              Kamu login sebagai <strong>Admin</strong>. Kamu tidak bisa melihat
+              atau mengelola konten yang di-hide oleh Owner.
             </p>
           </motion.div>
         )}
