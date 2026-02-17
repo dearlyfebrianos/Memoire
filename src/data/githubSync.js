@@ -1,7 +1,3 @@
-// ============================================================
-// GITHUB SYNC — Auto push photos.js ke repo GitHub
-// ============================================================
-
 export const GITHUB_CONFIG = {
   owner: "dearlyfebrianos",
   repo: "memoire",
@@ -10,39 +6,64 @@ export const GITHUB_CONFIG = {
   getToken: () => localStorage.getItem("memoire_github_token") || "",
 };
 
-// Generate photos.js — include hidden field so it persists globally
+// Detect if URL is a video
+export function isVideoUrl(url) {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  // Direct video file extensions
+  if (/\.(mp4|webm|ogg|mov|avi|mkv)(\?.*)?$/.test(lower)) return true;
+  // YouTube
+  if (lower.includes("youtube.com/watch") || lower.includes("youtu.be/")) return true;
+  // YouTube embed
+  if (lower.includes("youtube.com/embed/")) return true;
+  // Google Drive video
+  if (lower.includes("drive.google.com")) return true;
+  return false;
+}
+
+export function getMediaType(url) {
+  return isVideoUrl(url) ? "video" : "image";
+}
+
+// Convert old imageUrls array to new mediaItems format
+export function normalizeMediaItems(item) {
+  if (item.mediaItems?.length) return item.mediaItems;
+  // backward compat: old imageUrls
+  if (item.imageUrls?.length) {
+    return item.imageUrls.map((url) => ({ type: getMediaType(url), url }));
+  }
+  if (item.imageUrl) {
+    return [{ type: getMediaType(item.imageUrl), url: item.imageUrl }];
+  }
+  return [];
+}
+
 export function generatePhotosJS(chapters) {
   const chaptersCode = chapters.map((chapter) => {
     const photosCode = chapter.photos.map((photo) => {
-      const urls = photo.imageUrls?.length
-        ? photo.imageUrls
-        : photo.imageUrl
-        ? [photo.imageUrl]
-        : [];
+      const mediaItems = normalizeMediaItems(photo);
 
-      const urlsCode = urls.length === 1
-        ? `["${urls[0]}"]`
-        : `[\n${urls.map((u) => `          "${u}"`).join(",\n")},\n        ]`;
+      const mediaItemsCode = mediaItems.map((m) =>
+        `          { type: "${m.type}", url: ${JSON.stringify(m.url)} }`
+      ).join(",\n");
 
       const tags = photo.tags?.length
         ? `[${photo.tags.map((t) => `"${t}"`).join(", ")}]`
         : "[]";
 
-      // ✅ Tulis hidden field agar tersimpan ke GitHub
       const isHidden = photo.hidden === true;
 
       return `      {
         id: ${typeof photo.id === "number" ? photo.id : `"${photo.id}"`},
         title: ${JSON.stringify(photo.title)},
         caption: ${JSON.stringify(photo.caption || "")},
-        imageUrls: ${urlsCode},
+        mediaItems: [\n${mediaItemsCode}\n        ],
         date: ${JSON.stringify(photo.date || "")},
         tags: ${tags},
         hidden: ${isHidden},
       }`;
     }).join(",\n");
 
-    // ✅ Tulis hidden field chapter ke GitHub
     const chapterHidden = chapter.hidden === true;
 
     return `  {
@@ -84,7 +105,7 @@ export async function pushToGitHub(chapters) {
     branch: localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
   };
   const token = config.getToken();
-  if (!token) throw new Error("GitHub token belum diset. Klik tombol GitHub untuk setup.");
+  if (!token) throw new Error("GitHub token belum diset.");
 
   const content = generatePhotosJS(chapters);
   const contentBase64 = btoa(unescape(encodeURIComponent(content)));
@@ -94,13 +115,9 @@ export async function pushToGitHub(chapters) {
     `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.filePath}`,
     {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: `📸 Update photos.js — ${new Date().toLocaleString("id-ID")}`,
+        message: `📸 Update memories — ${new Date().toLocaleString("id-ID")}`,
         content: contentBase64,
         branch: config.branch,
         ...(sha ? { sha } : {}),
@@ -113,11 +130,7 @@ export async function pushToGitHub(chapters) {
     throw new Error(`Push gagal: ${err.message}`);
   }
   const result = await res.json();
-  return {
-    success: true,
-    commitUrl: result.commit?.html_url,
-    commitSha: result.commit?.sha?.slice(0, 7),
-  };
+  return { success: true, commitUrl: result.commit?.html_url, commitSha: result.commit?.sha?.slice(0, 7) };
 }
 
 export async function verifyToken(token, owner, repo) {
