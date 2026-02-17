@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../data/useStore";
@@ -525,6 +525,32 @@ export default function AdminDashboard() {
     setDeleteConfirm(null);
   };
 
+  // Keyboard shortcuts: Alt+G, Alt+S, Alt+L
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (!e.altKey) return;
+      switch (e.key.toLowerCase()) {
+        case "g":
+          e.preventDefault();
+          setShowGitHubSettings(true);
+          break;
+        case "s":
+          e.preventDefault();
+          window.open("/", "_blank");
+          break;
+        case "l":
+          e.preventDefault();
+          logout();
+          navigate("/admin");
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [navigate]);
+
   const tabs = [
     { id: "overview", label: "Overview", icon: "◈" },
     { id: "chapters", label: "Chapters", icon: "◉" },
@@ -614,6 +640,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowGitHubSettings(true)}
+              title="GitHub Settings (Alt + G)"
               className="px-3 py-2 rounded-xl font-body text-xs flex items-center gap-1.5"
               style={{
                 background: "rgba(255,255,255,0.05)",
@@ -635,6 +662,7 @@ export default function AdminDashboard() {
             <a
               href="/"
               target="_blank"
+              title="Lihat Site (Alt + S)"
               className="px-3 py-2 rounded-xl font-body text-xs flex items-center gap-1.5"
               style={{
                 background: "rgba(255,255,255,0.05)",
@@ -658,6 +686,7 @@ export default function AdminDashboard() {
             </a>
             <button
               onClick={handleLogout}
+              title="Logout (Alt + L)"
               className="px-3 py-2 rounded-xl font-body text-xs"
               style={{
                 background: "rgba(239,68,68,0.08)",
