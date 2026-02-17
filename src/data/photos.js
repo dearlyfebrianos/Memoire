@@ -65,14 +65,6 @@ export const chapters = [
         imageUrls: ["https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80"],
         date: "December 2020",
         tags: ["arts", "performance"],
-      },
-      {
-        id: 1771323559701.7097,
-        title: "test",
-        caption: "test",
-        imageUrls: ["https://tse3.mm.bing.net/th/id/OIP.byiG3yI3c8EpDC7GoWWp4gHaLG?cb=defcache2&defcache=1&rs=1&pid=ImgDetMain&o=7&rm=3"],
-        date: "Februari 2022",
-        tags: ["yaitu"],
       }
     ],
   },
