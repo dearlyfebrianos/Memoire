@@ -5,8 +5,8 @@ const CREDENTIALS = [
     role: "owner",
   },
   {
-    username: "eshal",
-    password: "eshal2026",
+    username: "admin",
+    password: "memoireadmin206",
     role: "admin",
   },
 ];
