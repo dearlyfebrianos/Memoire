@@ -1,4 +1,3 @@
-
 export const GITHUB_CONFIG = {
   owner: "dearlyfebrianos",
   repo: "memoire",

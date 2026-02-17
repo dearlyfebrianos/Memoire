@@ -11,7 +11,7 @@ export const chapters = [
     photos: [
       {
         id: 1771325247206.3179,
-        title: "Foto Bersama Di Jembatan Kenjeran",
+        title: "Memories On Februari 9th, 2026",
         caption: "Foto kenangan kami ketika sesudah berolahraga dan kami menuju ke kenjeran untuk rehat sejenak",
         imageUrls: [
           "https://i.ibb.co.com/HT8G9WMc/Whats-App-Image-2026-02-17-at-17-42-16.jpg",
