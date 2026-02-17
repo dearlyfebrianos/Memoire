@@ -7,7 +7,8 @@ import PhotoModal from "../components/PhotoModal";
 
 export default function ChapterPage() {
   const { slug } = useParams();
-  const { chapters } = useStore();
+  // ChapterPage: pakai chapters (semua) agar route manual tetap bisa akses chapter hidden
+  const { chapters, publicChapters } = useStore();
   const chapter = chapters.find((c) => c.slug === slug);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
@@ -41,6 +42,12 @@ export default function ChapterPage() {
     );
   }
 
+  // Foto yang ditampilkan: jika chapter hidden, tampilkan semua foto (akses langsung)
+  // Jika chapter publik, filter hanya foto yang tidak hidden
+  const visiblePhotos = chapter.hidden
+    ? chapter.photos // chapter hidden tapi diakses langsung = tampilkan semua
+    : chapter.photos.filter((p) => !p.hidden);
+
   return (
     <div className="min-h-screen relative">
       <div className="relative pt-24 pb-20 px-6 overflow-hidden">
@@ -50,6 +57,33 @@ export default function ChapterPage() {
             background: `radial-gradient(ellipse at 50% 0%, ${chapter.accentColor}18, transparent 70%)`,
           }}
         />
+
+        {/* Hidden badge — hanya muncul jika chapter di-hide */}
+        {chapter.hidden && (
+          <div
+            className="relative z-10 max-w-3xl mx-auto mb-6 px-4 py-2.5 rounded-xl flex items-center gap-2"
+            style={{
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.25)",
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fca5a5"
+              strokeWidth="2"
+            >
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22" />
+            </svg>
+            <p className="font-body text-xs" style={{ color: "#fca5a5" }}>
+              Chapter ini disembunyikan dari publik — hanya bisa diakses via
+              link langsung.
+            </p>
+          </div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -115,7 +149,7 @@ export default function ChapterPage() {
               letterSpacing: "0.1em",
             }}
           >
-            {chapter.photos.length} memories
+            {visiblePhotos.length} memories
           </div>
         </motion.div>
       </div>
@@ -129,7 +163,7 @@ export default function ChapterPage() {
 
       <div className="px-6 pb-24">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {chapter.photos.map((photo, i) => (
+          {visiblePhotos.map((photo, i) => (
             <PhotoCard
               key={photo.id}
               photo={{ ...photo, chapterLabel: chapter.label }}
@@ -141,7 +175,7 @@ export default function ChapterPage() {
             />
           ))}
         </div>
-        {chapter.photos.length === 0 && (
+        {visiblePhotos.length === 0 && (
           <div
             className="text-center py-20"
             style={{ color: "rgba(255,255,255,0.3)" }}
@@ -159,39 +193,42 @@ export default function ChapterPage() {
         )}
       </div>
 
-      <div className="px-6 pb-24">
-        <div className="max-w-7xl mx-auto">
-          <div
-            className="h-px mb-10"
-            style={{ background: "rgba(255,255,255,0.06)" }}
-          />
-          <p
-            className="font-body text-xs text-center mb-6 uppercase tracking-widest"
-            style={{ color: "rgba(255,255,255,0.2)" }}
-          >
-            Other Chapters
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {chapters
-              .filter((c) => c.id !== chapter.id)
-              .map((c) => (
-                <Link
-                  key={c.id}
-                  to={`/chapter/${c.slug}`}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full font-body text-sm transition-all duration-300 hover:scale-105"
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.55)",
-                  }}
-                >
-                  <span>{c.emoji}</span>
-                  <span>{c.label}</span>
-                </Link>
-              ))}
+      {/* Other chapters — hanya tampilkan yang publik */}
+      {publicChapters.filter((c) => c.id !== chapter.id).length > 0 && (
+        <div className="px-6 pb-24">
+          <div className="max-w-7xl mx-auto">
+            <div
+              className="h-px mb-10"
+              style={{ background: "rgba(255,255,255,0.06)" }}
+            />
+            <p
+              className="font-body text-xs text-center mb-6 uppercase tracking-widest"
+              style={{ color: "rgba(255,255,255,0.2)" }}
+            >
+              Other Chapters
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {publicChapters
+                .filter((c) => c.id !== chapter.id)
+                .map((c) => (
+                  <Link
+                    key={c.id}
+                    to={`/chapter/${c.slug}`}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full font-body text-sm transition-all duration-300 hover:scale-105"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.55)",
+                    }}
+                  >
+                    <span>{c.emoji}</span>
+                    <span>{c.label}</span>
+                  </Link>
+                ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {selectedPhoto && (
         <PhotoModal

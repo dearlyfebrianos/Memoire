@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useStore } from "../data/useStore";
 
 export default function Hero() {
-  const { chapters } = useStore();
+  const { publicChapters: chapters } = useStore();
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6 pt-24 pb-16">

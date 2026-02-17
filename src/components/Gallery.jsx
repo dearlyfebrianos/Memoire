@@ -5,7 +5,7 @@ import PhotoModal from "./PhotoModal";
 import { useStore } from "../data/useStore";
 
 export default function Gallery() {
-  const { chapters, allPhotos } = useStore();
+  const { publicChapters: chapters, publicPhotos: allPhotos } = useStore();
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [activeChapter, setActiveChapter] = useState("all");
 

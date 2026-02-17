@@ -53,6 +53,7 @@ export function useStore() {
     const newChapter = {
       ...chapter,
       id: chapter.slug || chapter.label.toLowerCase().replace(/\s+/g, "-"),
+      hidden: false,
       photos: [],
     };
     globalChapters = [...globalChapters, newChapter];
@@ -74,10 +75,19 @@ export function useStore() {
     notify();
   }, []);
 
+  const toggleChapterHidden = useCallback((id) => {
+    globalChapters = globalChapters.map((c) =>
+      c.id === id ? { ...c, hidden: !c.hidden } : c,
+    );
+    saveData(globalChapters);
+    notify();
+  }, []);
+
   const addPhoto = useCallback((chapterId, photo) => {
     const newPhoto = {
       ...photo,
       id: Date.now() + Math.random(),
+      hidden: false,
     };
     globalChapters = globalChapters.map((c) =>
       c.id === chapterId ? { ...c, photos: [...c.photos, newPhoto] } : c,
@@ -111,18 +121,47 @@ export function useStore() {
     notify();
   }, []);
 
+  const togglePhotoHidden = useCallback((chapterId, photoId) => {
+    globalChapters = globalChapters.map((c) =>
+      c.id === chapterId
+        ? {
+            ...c,
+            photos: c.photos.map((p) =>
+              p.id === photoId ? { ...p, hidden: !p.hidden } : p,
+            ),
+          }
+        : c,
+    );
+    saveData(globalChapters);
+    notify();
+  }, []);
+
   const allPhotos = chapters.flatMap((c) =>
     c.photos.map((p) => ({ ...p, chapter: c.id, chapterLabel: c.label })),
   );
 
+  const publicChapters = chapters.filter((c) => !c.hidden);
+
+  const publicPhotos = chapters
+    .filter((c) => !c.hidden)
+    .flatMap((c) =>
+      c.photos
+        .filter((p) => !p.hidden)
+        .map((p) => ({ ...p, chapter: c.id, chapterLabel: c.label })),
+    );
+
   return {
     chapters,
+    publicChapters,
     allPhotos,
+    publicPhotos,
     addChapter,
     updateChapter,
     deleteChapter,
+    toggleChapterHidden,
     addPhoto,
     updatePhoto,
     deletePhoto,
+    togglePhotoHidden,
   };
 }
