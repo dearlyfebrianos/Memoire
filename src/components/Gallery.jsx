@@ -2,9 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import PhotoCard from "./PhotoCard";
 import PhotoModal from "./PhotoModal";
-import { allPhotos, chapters } from "../data/photos";
+import { useStore } from "../data/useStore";
 
 export default function Gallery() {
+  const { chapters, allPhotos } = useStore();
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [activeChapter, setActiveChapter] = useState("all");
 
@@ -32,7 +33,7 @@ export default function Gallery() {
               className="font-body text-xs tracking-[0.3em] uppercase"
               style={{ color: "#e8c4a0", letterSpacing: "0.25em" }}
             >
-              Semua Bab
+              All Chapters
             </span>
             <div className="h-px w-10 shimmer-accent" />
           </div>
@@ -44,14 +45,14 @@ export default function Gallery() {
               color: "rgba(255,255,255,0.92)",
             }}
           >
-            Album Kenangan Lengkap
+            The Full Gallery
           </h2>
           <p
             className="font-body text-sm max-w-md mx-auto"
             style={{ color: "rgba(255,255,255,0.45)", lineHeight: "1.8" }}
           >
-            Saring berdasarkan bab atau telusuri semua {allPhotos.length}{" "}
-            kenangan sekaligus.
+            Filter by chapter or browse all {allPhotos.length} memories
+            together.
           </p>
         </motion.div>
 
@@ -63,7 +64,7 @@ export default function Gallery() {
           className="flex flex-wrap justify-center gap-2 mb-12"
         >
           {[
-            { id: "all", label: "Semua", emoji: "✦", accentColor: "#e8c4a0" },
+            { id: "all", label: "All", emoji: "✦", accentColor: "#e8c4a0" },
             ...chapters,
           ].map((tab) => {
             const isActive = activeChapter === tab.id;
@@ -74,16 +75,13 @@ export default function Gallery() {
                 className="px-5 py-2.5 rounded-full font-body text-sm transition-all duration-300"
                 style={{
                   background: isActive
-                    ? `${tab.accentColor || accentColor}18`
+                    ? `${tab.accentColor}18`
                     : "rgba(255,255,255,0.05)",
                   border: isActive
-                    ? `1px solid ${tab.accentColor || accentColor}44`
+                    ? `1px solid ${tab.accentColor}44`
                     : "1px solid rgba(255,255,255,0.1)",
-                  color: isActive
-                    ? tab.accentColor || accentColor
-                    : "rgba(255,255,255,0.5)",
+                  color: isActive ? tab.accentColor : "rgba(255,255,255,0.5)",
                   backdropFilter: "blur(10px)",
-                  letterSpacing: "0.04em",
                   transform: isActive ? "scale(1.03)" : "scale(1)",
                 }}
               >
@@ -124,9 +122,11 @@ export default function Gallery() {
               className="font-display text-2xl mb-2"
               style={{ fontWeight: 300 }}
             >
-              Belum ada kenangan
+              No memories yet
             </p>
-            <p className="font-body text-sm">Bab ini menunggu untuk ditulis.</p>
+            <p className="font-body text-sm">
+              This chapter is waiting to be written.
+            </p>
           </div>
         )}
       </div>

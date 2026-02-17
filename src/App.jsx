@@ -16,6 +16,9 @@ import AboutPage from "./pages/AboutPage";
 import "./styles/globals.css";
 import CustomCursor from "./components/CustomCursor";
 import NotFound from "./components/NotFound";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminGuard from "./pages/admin/AdminGuard";
+import AdminLogin from "./pages/admin/AdminLogin";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -27,6 +30,7 @@ function ScrollToTop() {
 
 function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const handlePageLoad = () => setIsLoading(false);
@@ -39,6 +43,8 @@ function AppContent() {
     }
   }, []);
 
+  const isAdminRoute = pathname.startsWith("/admin");
+
   return (
     <>
       {isLoading && <LoadingSplash />}
@@ -49,9 +55,20 @@ function AppContent() {
         <div className="bg-orb bg-orb-2" />
         <div className="bg-orb bg-orb-3" />
         <div className="relative z-10">
-          <Navbar />
+          {!isAdminRoute && <Navbar />}
           <main>
             <Routes>
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminLogin />} />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminGuard>
+                    <AdminDashboard />
+                  </AdminGuard>
+                }
+              />
+
               <Route path="/" element={<Home />} />
               <Route path="/gallery" element={<GalleryPage />} />
               <Route path="/chapter/:slug" element={<ChapterPage />} />
@@ -60,7 +77,7 @@ function AppContent() {
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
           </main>
-          <Footer />
+          {!isAdminRoute && <Footer />}
         </div>
       </div>
     </>

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { chapters } from "../data/photos";
+import { useStore } from "../data/useStore";
 import PhotoCard from "../components/PhotoCard";
 import PhotoModal from "../components/PhotoModal";
 
 export default function ChapterPage() {
   const { slug } = useParams();
+  const { chapters } = useStore();
   const chapter = chapters.find((c) => c.slug === slug);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
@@ -23,7 +24,7 @@ export default function ChapterPage() {
           className="font-body text-sm mb-8"
           style={{ color: "rgba(255,255,255,0.4)" }}
         >
-          Bab ini belum ditulis.
+          Chapter ini belum ada.
         </p>
         <Link
           to="/"
@@ -34,7 +35,7 @@ export default function ChapterPage() {
             color: "#e8c4a0",
           }}
         >
-          Kembali ke Beranda
+          Return Home
         </Link>
       </div>
     );
@@ -49,7 +50,6 @@ export default function ChapterPage() {
             background: `radial-gradient(ellipse at 50% 0%, ${chapter.accentColor}18, transparent 70%)`,
           }}
         />
-
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ export default function ChapterPage() {
         >
           <Link
             to="/gallery"
-            className="inline-flex items-center gap-2 font-body text-xs mb-10 transition-opacity hover:opacity-100 opacity-50"
+            className="inline-flex items-center gap-2 font-body text-xs mb-10 opacity-50 hover:opacity-100 transition-opacity"
             style={{ color: "rgba(255,255,255,0.7)", letterSpacing: "0.07em" }}
           >
             <svg
@@ -71,11 +71,9 @@ export default function ChapterPage() {
             >
               <path d="M19 12H5M12 5l-7 7 7 7" />
             </svg>
-            Kembali ke Galeri
+            Back to Gallery
           </Link>
-
           <div className="text-5xl mb-6">{chapter.emoji}</div>
-
           <div className="flex items-center justify-center gap-3 mb-4">
             <div
               className="h-px w-8"
@@ -92,7 +90,6 @@ export default function ChapterPage() {
               style={{ background: chapter.accentColor, opacity: 0.5 }}
             />
           </div>
-
           <h1
             className="font-display mb-5"
             style={{
@@ -103,14 +100,12 @@ export default function ChapterPage() {
           >
             {chapter.label}
           </h1>
-
           <p
             className="font-body text-sm max-w-lg mx-auto"
             style={{ color: "rgba(255,255,255,0.5)", lineHeight: "1.9" }}
           >
             {chapter.description}
           </p>
-
           <div
             className="inline-block mt-6 px-5 py-2 rounded-full font-body text-xs"
             style={{
@@ -120,7 +115,7 @@ export default function ChapterPage() {
               letterSpacing: "0.1em",
             }}
           >
-            {chapter.photos.length} kenangan
+            {chapter.photos.length} memories
           </div>
         </motion.div>
       </div>
@@ -146,6 +141,22 @@ export default function ChapterPage() {
             />
           ))}
         </div>
+        {chapter.photos.length === 0 && (
+          <div
+            className="text-center py-20"
+            style={{ color: "rgba(255,255,255,0.3)" }}
+          >
+            <p
+              className="font-display text-2xl mb-2"
+              style={{ fontWeight: 300 }}
+            >
+              Belum ada foto
+            </p>
+            <p className="font-body text-sm">
+              Chapter ini menunggu untuk diisi.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="px-6 pb-24">
@@ -158,7 +169,7 @@ export default function ChapterPage() {
             className="font-body text-xs text-center mb-6 uppercase tracking-widest"
             style={{ color: "rgba(255,255,255,0.2)" }}
           >
-            Bab Lainnya
+            Other Chapters
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             {chapters
