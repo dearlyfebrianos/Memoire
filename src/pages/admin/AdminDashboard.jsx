@@ -519,6 +519,7 @@ export default function AdminDashboard() {
   const [addPhotoToChapter, setAddPhotoToChapter] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [expandedChapter, setExpandedChapter] = useState(null);
+  const [activeActionMenu, setActiveActionMenu] = useState(null);
   const [showGitHubSettings, setShowGitHubSettings] = useState(false);
   const [showLinkGenerator, setShowLinkGenerator] = useState(false);
 
@@ -1110,46 +1111,215 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-                      {isOwnerRole && (
-                        <HiddenToggle
-                          isHidden={chapter.hidden}
-                          onToggle={() => toggleChapterHidden(chapter.id)}
-                        />
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAddPhotoToChapter(chapter.id);
-                          setShowAddPhoto(true);
-                        }}
-                        className="px-3 py-1.5 rounded-lg font-body text-xs"
-                        style={{
-                          background: `${chapter.accentColor}12`,
-                          border: `1px solid ${chapter.accentColor}30`,
-                          color: chapter.accentColor,
-                        }}
-                      >
-                        + Kenangan
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfirm({
-                            type: "chapter",
-                            id: chapter.id,
-                            label: chapter.label,
-                          });
-                        }}
-                        className="px-3 py-1.5 rounded-lg font-body text-xs"
-                        style={{
-                          background: "rgba(239,68,68,0.08)",
-                          border: "1px solid rgba(239,68,68,0.2)",
-                          color: "#fca5a5",
-                        }}
-                      >
-                        Hapus
-                      </button>
+                    <div className="flex items-center gap-2 flex-shrink-0 justify-end relative">
+                      {/* Desktop Actions */}
+                      <div className="hidden sm:flex items-center gap-2">
+                        {isOwnerRole && (
+                          <HiddenToggle
+                            isHidden={chapter.hidden}
+                            onToggle={() => toggleChapterHidden(chapter.id)}
+                          />
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAddPhotoToChapter(chapter.id);
+                            setShowAddPhoto(true);
+                          }}
+                          className="px-3 py-1.5 rounded-lg font-body text-xs"
+                          style={{
+                            background: `${chapter.accentColor}12`,
+                            border: `1px solid ${chapter.accentColor}30`,
+                            color: chapter.accentColor,
+                          }}
+                        >
+                          + Kenangan
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirm({
+                              type: "chapter",
+                              id: chapter.id,
+                              label: chapter.label,
+                            });
+                          }}
+                          className="px-3 py-1.5 rounded-lg font-body text-xs transition-all hover:bg-red-500/20"
+                          style={{
+                            background: "rgba(239,68,68,0.08)",
+                            border: "1px solid rgba(239,68,68,0.2)",
+                            color: "#fca5a5",
+                          }}
+                        >
+                          Hapus
+                        </button>
+                      </div>
+
+                      {/* Mobile Action Menu (Three Dots) */}
+                      <div className="flex sm:hidden">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveActionMenu(
+                              activeActionMenu === chapter.id
+                                ? null
+                                : chapter.id,
+                            );
+                          }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-white/5 border border-white/10"
+                          style={{ color: "rgba(255,255,255,0.4)" }}
+                        >
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="1.5"
+                              fill="currentColor"
+                              stroke="none"
+                            />
+                            <circle
+                              cx="6"
+                              cy="12"
+                              r="1.5"
+                              fill="currentColor"
+                              stroke="none"
+                            />
+                            <circle
+                              cx="18"
+                              cy="12"
+                              r="1.5"
+                              fill="currentColor"
+                              stroke="none"
+                            />
+                          </svg>
+                        </button>
+
+                        <AnimatePresence>
+                          {activeActionMenu === chapter.id && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setActiveActionMenu(null)}
+                              />
+                              <motion.div
+                                initial={{
+                                  opacity: 0,
+                                  scale: 0.9,
+                                  x: 10,
+                                  y: -10,
+                                }}
+                                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="absolute top-12 right-0 z-20 w-48 rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+                                style={{
+                                  background: "rgba(15,14,31,0.98)",
+                                  backdropFilter: "blur(20px)",
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="p-2 space-y-1">
+                                  {isOwnerRole && (
+                                    <button
+                                      onClick={() => {
+                                        toggleChapterHidden(chapter.id);
+                                        setActiveActionMenu(null);
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-xs text-left"
+                                      style={{
+                                        color: chapter.hidden
+                                          ? "#4ade80"
+                                          : "#fca5a5",
+                                        background: chapter.hidden
+                                          ? "rgba(74,222,128,0.05)"
+                                          : "rgba(239,68,68,0.05)",
+                                      }}
+                                    >
+                                      <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                      >
+                                        {chapter.hidden ? (
+                                          <>
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                          </>
+                                        ) : (
+                                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22" />
+                                        )}
+                                      </svg>
+                                      {chapter.hidden
+                                        ? "Unhide Chapter"
+                                        : "Hide Chapter"}
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      setAddPhotoToChapter(chapter.id);
+                                      setShowAddPhoto(true);
+                                      setActiveActionMenu(null);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-xs text-left transition-colors hover:bg-white/5"
+                                    style={{ color: chapter.accentColor }}
+                                  >
+                                    <svg
+                                      width="14"
+                                      height="14"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                    >
+                                      <line x1="12" y1="5" x2="12" y2="19" />
+                                      <line x1="5" y1="12" x2="19" y2="12" />
+                                    </svg>
+                                    Tambah Kenangan
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setDeleteConfirm({
+                                        type: "chapter",
+                                        id: chapter.id,
+                                        label: chapter.label,
+                                      });
+                                      setActiveActionMenu(null);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-xs text-left transition-colors hover:bg-red-500/10"
+                                    style={{ color: "#fca5a5" }}
+                                  >
+                                    <svg
+                                      width="14"
+                                      height="14"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                    >
+                                      <polyline points="3 6 5 6 21 6" />
+                                      <path d="M19 6l-1 14H6L5 6" />
+                                      <path d="M10 11v6M14 11v6" />
+                                      <path d="M9 6V4h6v2" />
+                                    </svg>
+                                    Hapus Chapter
+                                  </button>
+                                </div>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
                       <motion.span
                         style={{ color: "rgba(255,255,255,0.3)" }}
                         animate={{

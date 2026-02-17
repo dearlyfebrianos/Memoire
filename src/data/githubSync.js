@@ -13,7 +13,8 @@ export function isVideoUrl(url) {
   // Direct video file extensions
   if (/\.(mp4|webm|ogg|mov|avi|mkv)(\?.*)?$/.test(lower)) return true;
   // YouTube
-  if (lower.includes("youtube.com/watch") || lower.includes("youtu.be/")) return true;
+  if (lower.includes("youtube.com/watch") || lower.includes("youtu.be/"))
+    return true;
   // YouTube embed
   if (lower.includes("youtube.com/embed/")) return true;
   // Google Drive video
@@ -39,21 +40,26 @@ export function normalizeMediaItems(item) {
 }
 
 export function generatePhotosJS(chapters) {
-  const chaptersCode = chapters.map((chapter) => {
-    const photosCode = chapter.photos.map((photo) => {
-      const mediaItems = normalizeMediaItems(photo);
+  const chaptersCode = chapters
+    .map((chapter) => {
+      const photosCode = chapter.photos
+        .map((photo) => {
+          const mediaItems = normalizeMediaItems(photo);
 
-      const mediaItemsCode = mediaItems.map((m) =>
-        `          { type: "${m.type}", url: ${JSON.stringify(m.url)} }`
-      ).join(",\n");
+          const mediaItemsCode = mediaItems
+            .map(
+              (m) =>
+                `          { type: "${m.type}", url: ${JSON.stringify(m.url)} }`,
+            )
+            .join(",\n");
 
-      const tags = photo.tags?.length
-        ? `[${photo.tags.map((t) => `"${t}"`).join(", ")}]`
-        : "[]";
+          const tags = photo.tags?.length
+            ? `[${photo.tags.map((t) => `"${t}"`).join(", ")}]`
+            : "[]";
 
-      const isHidden = photo.hidden === true;
+          const isHidden = photo.hidden === true;
 
-      return `      {
+          return `      {
         id: ${typeof photo.id === "number" ? photo.id : `"${photo.id}"`},
         title: ${JSON.stringify(photo.title)},
         caption: ${JSON.stringify(photo.caption || "")},
@@ -62,11 +68,12 @@ export function generatePhotosJS(chapters) {
         tags: ${tags},
         hidden: ${isHidden},
       }`;
-    }).join(",\n");
+        })
+        .join(",\n");
 
-    const chapterHidden = chapter.hidden === true;
+      const chapterHidden = chapter.hidden === true;
 
-    return `  {
+      return `  {
     id: ${JSON.stringify(chapter.id)},
     label: ${JSON.stringify(chapter.label)},
     slug: ${JSON.stringify(chapter.slug || chapter.id)},
@@ -78,7 +85,8 @@ export function generatePhotosJS(chapters) {
     hidden: ${chapterHidden},
     photos: [\n${photosCode}\n    ],
   }`;
-  }).join(",\n");
+    })
+    .join(",\n");
 
   return `export const chapters = [\n${chaptersCode}\n];\n\nexport const allPhotos = chapters.flatMap((c) =>\n  c.photos.map((p) => ({ ...p, chapter: c.id, chapterLabel: c.label }))\n);\n`;
 }
@@ -86,7 +94,12 @@ export function generatePhotosJS(chapters) {
 async function getFileSHA(token, config) {
   const res = await fetch(
     `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.filePath}?ref=${config.branch}`,
-    { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" } }
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+      },
+    },
   );
   if (!res.ok) {
     if (res.status === 404) return null;
@@ -102,7 +115,8 @@ export async function pushToGitHub(chapters) {
     ...GITHUB_CONFIG,
     owner: localStorage.getItem("memoire_github_owner") || GITHUB_CONFIG.owner,
     repo: localStorage.getItem("memoire_github_repo") || GITHUB_CONFIG.repo,
-    branch: localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
+    branch:
+      localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
   };
   const token = config.getToken();
   if (!token) throw new Error("GitHub token belum diset.");
@@ -115,14 +129,18 @@ export async function pushToGitHub(chapters) {
     `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.filePath}`,
     {
       method: "PUT",
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         message: `📸 Update memories — ${new Date().toLocaleString("id-ID")}`,
         content: contentBase64,
         branch: config.branch,
         ...(sha ? { sha } : {}),
       }),
-    }
+    },
   );
 
   if (!res.ok) {
@@ -130,17 +148,28 @@ export async function pushToGitHub(chapters) {
     throw new Error(`Push gagal: ${err.message}`);
   }
   const result = await res.json();
-  return { success: true, commitUrl: result.commit?.html_url, commitSha: result.commit?.sha?.slice(0, 7) };
+  return {
+    success: true,
+    commitUrl: result.commit?.html_url,
+    commitSha: result.commit?.sha?.slice(0, 7),
+  };
 }
 
 export async function verifyToken(token, owner, repo) {
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+    },
   });
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.message || "Token atau repo tidak valid");
   }
   const data = await res.json();
-  return { repoName: data.full_name, private: data.private, defaultBranch: data.default_branch };
+  return {
+    repoName: data.full_name,
+    private: data.private,
+    defaultBranch: data.default_branch,
+  };
 }

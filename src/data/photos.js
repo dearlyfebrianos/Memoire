@@ -16,11 +16,16 @@ export const chapters = [
         caption: "Momen kebersamaan kami usai berolahraga, sebelum menuju Kenjeran untuk menikmati waktu istirahat sejenak.",
         mediaItems: [
           { type: "image", url: "https://i.ibb.co.com/HT8G9WMc/Whats-App-Image-2026-02-17-at-17-42-16.jpg" },
-          { type: "image", url: "https://i.ibb.co.com/tPh5W8DP/4.jpg" }
+          { type: "image", url: "https://i.ibb.co.com/tPh5W8DP/4.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352677/y6wdvavfemcikqk9jste.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352688/y2u75ig5pam3dlmmmzfj.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352694/dwzvv6tg0vyo37oclm1m.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352705/ldldbtjw2bmm7zxtsdpd.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352714/ahy0oh7ek1qxy75axcxh.jpg" }
         ],
         date: "9, Februari 2026",
         tags: ["girl friend", "boy friend", "foto bersama"],
-        hidden: false,
+        hidden: true,
       }
     ],
   }

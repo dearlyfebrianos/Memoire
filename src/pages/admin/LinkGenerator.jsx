@@ -494,13 +494,14 @@ export default function LinkGenerator({ onClose }) {
                   {results.map((r) => (
                     <div
                       key={r.id}
-                      className="p-3 rounded-xl flex gap-3"
+                      className="p-3 rounded-xl flex items-center gap-3"
                       style={{
                         background: "rgba(255,255,255,0.03)",
                         border: "1px solid rgba(255,255,255,0.06)",
                       }}
                     >
-                      <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black flex items-center justify-center">
+                      {/* Thumbnail */}
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0 bg-black flex items-center justify-center">
                         {r.type === "image" ? (
                           <img
                             src={r.directUrl}
@@ -514,10 +515,12 @@ export default function LinkGenerator({ onClose }) {
                           </video>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="flex items-center gap-2 mb-1">
+
+                      {/* Info & Copy */}
+                      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span
-                            className="font-body"
+                            className="font-body shrink-0"
                             style={{
                               fontSize: "0.6rem",
                               color: r.type === "image" ? "#e8c4a0" : "#38bdf8",
@@ -529,26 +532,38 @@ export default function LinkGenerator({ onClose }) {
                             {r.type.toUpperCase()}
                           </span>
                           <p
-                            className="font-body text-xs truncate"
+                            className="font-body text-[10px] sm:text-xs truncate max-w-[120px] sm:max-w-none"
                             style={{ color: "rgba(255,255,255,0.4)" }}
                           >
                             {r.filename}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            readOnly
-                            value={r.directUrl}
-                            className="flex-1 font-body text-xs bg-black/30 p-2 rounded-lg outline-none text-white/60"
-                          />
+                          <div className="flex-1 relative min-w-0">
+                            <input
+                              type="text"
+                              readOnly
+                              value={r.directUrl}
+                              className="w-full font-body text-[10px] sm:text-xs bg-black/30 p-2 sm:p-2.5 rounded-lg outline-none text-white/60 pr-8"
+                            />
+                            <div
+                              className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
+                              style={{
+                                background:
+                                  r.type === "image"
+                                    ? "#e8c4a022"
+                                    : "#38bdf822",
+                              }}
+                            />
+                          </div>
                           <button
                             onClick={() => handleCopy(r.directUrl, r.id)}
-                            className="px-3 py-2 rounded-lg font-body text-xs"
+                            className="shrink-0 px-3 sm:px-4 py-2 rounded-lg font-body text-[10px] sm:text-xs transition-colors"
                             style={{
                               background:
                                 copiedId === r.id ? "#4ade8022" : "#38bdf822",
                               color: copiedId === r.id ? "#4ade80" : "#38bdf8",
+                              border: `1px solid ${copiedId === r.id ? "#4ade8033" : "transparent"}`,
                             }}
                           >
                             {copiedId === r.id ? "Ok" : "Salin"}
