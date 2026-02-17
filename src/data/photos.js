@@ -133,26 +133,6 @@ export const chapters = [
         tags: ["milestone", "farewell"],
       }
     ],
-  },
-  {
-    id: "work-shop",
-    label: "Kapal",
-    slug: "work-shop",
-    years: "2024 - 2026",
-    description: "Bab yang berisi pada masa saya bekerja di kapal",
-    coverGradient: "from-slate-900/40 to-gray-900/30",
-    accentColor: "#2dd4bf",
-    emoji: "🌊",
-    photos: [
-      {
-        id: 1771321816326.6858,
-        title: "ROR",
-        caption: "ya begitulah",
-        imageUrls: ["https://tse3.mm.bing.net/th/id/OIP.jhB1xpNoUlX7LOSs7oGo2gHaBu?cb=defcache2&defcache=1&rs=1&pid=ImgDetMain&o=7&rm=3"],
-        date: "Februari 2025",
-        tags: ["bekerja", "kapal"],
-      }
-    ],
   }
 ];
 
