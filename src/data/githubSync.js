@@ -1,3 +1,7 @@
+// ============================================================
+// GITHUB SYNC — Auto push photos.js ke repo GitHub
+// ============================================================
+
 export const GITHUB_CONFIG = {
   owner: "dearlyfebrianos",
   repo: "memoire",
@@ -6,6 +10,7 @@ export const GITHUB_CONFIG = {
   getToken: () => localStorage.getItem("memoire_github_token") || "",
 };
 
+// Generate photos.js — include hidden field so it persists globally
 export function generatePhotosJS(chapters) {
   const chaptersCode = chapters.map((chapter) => {
     const photosCode = chapter.photos.map((photo) => {
@@ -23,6 +28,9 @@ export function generatePhotosJS(chapters) {
         ? `[${photo.tags.map((t) => `"${t}"`).join(", ")}]`
         : "[]";
 
+      // ✅ Tulis hidden field agar tersimpan ke GitHub
+      const isHidden = photo.hidden === true;
+
       return `      {
         id: ${typeof photo.id === "number" ? photo.id : `"${photo.id}"`},
         title: ${JSON.stringify(photo.title)},
@@ -30,8 +38,12 @@ export function generatePhotosJS(chapters) {
         imageUrls: ${urlsCode},
         date: ${JSON.stringify(photo.date || "")},
         tags: ${tags},
+        hidden: ${isHidden},
       }`;
     }).join(",\n");
+
+    // ✅ Tulis hidden field chapter ke GitHub
+    const chapterHidden = chapter.hidden === true;
 
     return `  {
     id: ${JSON.stringify(chapter.id)},
@@ -42,6 +54,7 @@ export function generatePhotosJS(chapters) {
     coverGradient: ${JSON.stringify(chapter.coverGradient || "from-slate-900/40 to-gray-900/30")},
     accentColor: ${JSON.stringify(chapter.accentColor || "#e8c4a0")},
     emoji: ${JSON.stringify(chapter.emoji || "📸")},
+    hidden: ${chapterHidden},
     photos: [\n${photosCode}\n    ],
   }`;
   }).join(",\n");
@@ -81,7 +94,11 @@ export async function pushToGitHub(chapters) {
     `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.filePath}`,
     {
       method: "PUT",
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         message: `📸 Update photos.js — ${new Date().toLocaleString("id-ID")}`,
         content: contentBase64,
