@@ -144,7 +144,17 @@ export const chapters = [
     accentColor: "#f472b6",
     emoji: "🌸",
     photos: [
-
+      {
+        id: 1771325247206.3179,
+        title: "Foto Bersama Di Jembatan Kenjeran",
+        caption: "Foto kenangan kami ketika sesudah berolahraga dan kami menuju ke kenjeran untuk rehat sejenak",
+        imageUrls: [
+          "https://i.ibb.co.com/HT8G9WMc/Whats-App-Image-2026-02-17-at-17-42-16.jpg",
+          "https://i.ibb.co.com/tPh5W8DP/4.jpg",
+        ],
+        date: "Februari 2026",
+        tags: ["girl friend", "boy friend"],
+      }
     ],
   }
 ];
