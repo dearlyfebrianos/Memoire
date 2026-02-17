@@ -503,7 +503,13 @@ export default function AdminDashboard() {
   const chapters = isOwnerRole ? allChapters : publicChapters;
   const allPhotos = isOwnerRole ? allPhotosRaw : publicPhotos;
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(
+    () => sessionStorage.getItem("memoire_admin_tab") || "overview",
+  );
+
+  useEffect(() => {
+    sessionStorage.setItem("memoire_admin_tab", activeTab);
+  }, [activeTab]);
   const [showAddPhoto, setShowAddPhoto] = useState(false);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [editPhoto, setEditPhoto] = useState(null);
