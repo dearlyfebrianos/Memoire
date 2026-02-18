@@ -24,6 +24,8 @@ export default function PublishButton({ onOpenSettings }) {
       const res = await pushToGitHub(chapters);
       setResult(res);
       setStatus("success");
+      // Clear data lokal setelah publish berhasil
+      localStorage.removeItem("memoire_data");
       setShowResult(true);
       setTimeout(() => {
         setStatus("idle");

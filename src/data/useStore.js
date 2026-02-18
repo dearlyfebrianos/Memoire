@@ -2,61 +2,18 @@ import { useState, useEffect, useCallback } from "react";
 import { chapters as defaultChapters } from "./photos";
 import { normalizeMediaItems } from "./githubSync";
 
-const STORAGE_KEY = "memoire_data";
-
-function normalizePhoto(photo) {
+export function normalizePhoto(photo) {
   return { ...photo, mediaItems: normalizeMediaItems(photo) };
 }
 
-function normalizeChapter(chapter) {
+export function normalizeChapter(chapter) {
   return { ...chapter, photos: (chapter.photos || []).map(normalizePhoto) };
 }
 
+// Data loading logic simplified to prioritize photos.js
 function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultChapters.map(normalizeChapter);
-    const saved = JSON.parse(raw);
-
-    const merged = defaultChapters.map((defChapter) => {
-      const savedChapter = saved.find((s) => s.id === defChapter.id);
-      if (!savedChapter) return normalizeChapter(defChapter);
-
-      const mergedPhotos = defChapter.photos.map((defPhoto) => {
-        const savedPhoto = savedChapter.photos?.find(
-          (p) => p.id === defPhoto.id,
-        );
-        if (!savedPhoto) return normalizePhoto(defPhoto);
-        return normalizePhoto({ ...savedPhoto, hidden: defPhoto.hidden });
-      });
-
-      const newPhotos = (savedChapter.photos || [])
-        .filter((sp) => !defChapter.photos.find((dp) => dp.id === sp.id))
-        .map(normalizePhoto);
-
-      return {
-        ...savedChapter,
-        hidden: defChapter.hidden,
-        photos: [...mergedPhotos, ...newPhotos],
-      };
-    });
-
-    const newChapters = saved
-      .filter((s) => !defaultChapters.find((d) => d.id === s.id))
-      .map(normalizeChapter);
-
-    return [...merged, ...newChapters];
-  } catch {
-    return defaultChapters.map(normalizeChapter);
-  }
-}
-
-function saveData(chapters) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(chapters));
-  } catch (e) {
-    console.error("Storage error:", e);
-  }
+  // Selalu gunakan data murni dari photos.js agar sinkron antar perangkat
+  return defaultChapters.map(normalizeChapter);
 }
 
 let globalChapters = loadData();
@@ -84,7 +41,6 @@ export function useStore() {
       photos: [],
     };
     globalChapters = [...globalChapters, newChapter];
-    saveData(globalChapters);
     notify();
   }, []);
 
@@ -92,13 +48,11 @@ export function useStore() {
     globalChapters = globalChapters.map((c) =>
       c.id === id ? { ...c, ...updates } : c,
     );
-    saveData(globalChapters);
     notify();
   }, []);
 
   const deleteChapter = useCallback((id) => {
     globalChapters = globalChapters.filter((c) => c.id !== id);
-    saveData(globalChapters);
     notify();
   }, []);
 
@@ -106,7 +60,6 @@ export function useStore() {
     globalChapters = globalChapters.map((c) =>
       c.id === id ? { ...c, hidden: !c.hidden } : c,
     );
-    saveData(globalChapters);
     notify();
   }, []);
 
@@ -119,7 +72,6 @@ export function useStore() {
     globalChapters = globalChapters.map((c) =>
       c.id === chapterId ? { ...c, photos: [...c.photos, newPhoto] } : c,
     );
-    saveData(globalChapters);
     notify();
   }, []);
 
@@ -134,7 +86,6 @@ export function useStore() {
           }
         : c,
     );
-    saveData(globalChapters);
     notify();
   }, []);
 
@@ -144,7 +95,6 @@ export function useStore() {
         ? { ...c, photos: c.photos.filter((p) => p.id !== photoId) }
         : c,
     );
-    saveData(globalChapters);
     notify();
   }, []);
 
@@ -159,7 +109,6 @@ export function useStore() {
           }
         : c,
     );
-    saveData(globalChapters);
     notify();
   }, []);
 
@@ -177,6 +126,11 @@ export function useStore() {
         .map((p) => ({ ...p, chapter: c.id, chapterLabel: c.label })),
     );
 
+  const setChaptersDirect = useCallback((newData) => {
+    globalChapters = newData.map(normalizeChapter);
+    notify();
+  }, []);
+
   return {
     chapters,
     publicChapters,
@@ -190,5 +144,6 @@ export function useStore() {
     updatePhoto,
     deletePhoto,
     togglePhotoHidden,
+    setChaptersDirect,
   };
 }

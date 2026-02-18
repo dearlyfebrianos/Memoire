@@ -25,7 +25,7 @@ export const chapters = [
         ],
         date: "9, Februari 2026",
         tags: ["girl friend", "boy friend", "foto bersama"],
-        hidden: true,
+        hidden: false,
       }
     ],
   }
