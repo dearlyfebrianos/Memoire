@@ -113,12 +113,12 @@ export default function BackupManager({ chapters, credentials }) {
 
       {/* Backup Section */}
       <div className="relative group p-1 rounded-[32px] bg-gradient-to-b from-white/10 to-transparent">
-        <div className="bg-[#0a0a0f] rounded-[28px] p-8 md:p-10 relative overflow-hidden">
+        <div className="bg-[#0a0a0f] rounded-[28px] p-6 md:p-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-32 bg-[#e8c4a0]/5 blur-[100px] rounded-full pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-            <div className="flex items-start gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e8c4a0]/20 to-orange-500/10 border border-[#e8c4a0]/30 flex items-center justify-center text-[#e8c4a0] shadow-lg shadow-[#e8c4a0]/10">
+          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-center justify-between gap-8">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e8c4a0]/20 to-orange-500/10 border border-[#e8c4a0]/30 flex items-center justify-center text-[#e8c4a0] shadow-lg shadow-[#e8c4a0]/10 shrink-0">
                 <svg
                   width="32"
                   height="32"
@@ -136,7 +136,7 @@ export default function BackupManager({ chapters, credentials }) {
                 <h3 className="font-display text-xl text-white/90 mb-1">
                   Backup All Data
                 </h3>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 items-center sm:items-start">
                   <p className="font-body text-xs text-white/40">Includes:</p>
                   <div className="flex gap-2">
                     <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-white/60">
@@ -153,7 +153,7 @@ export default function BackupManager({ chapters, credentials }) {
             <button
               onClick={handleBackup}
               disabled={status === "backing_up"}
-              className="px-8 py-4 rounded-xl bg-[#e8c4a0] hover:bg-[#d8b490] text-[#0a0a0f] font-display text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3 shadow-xl shadow-[#e8c4a0]/20"
+              className="w-full md:w-auto justify-center px-8 py-4 rounded-xl bg-[#e8c4a0] hover:bg-[#d8b490] text-[#0a0a0f] font-display text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3 shadow-xl shadow-[#e8c4a0]/20"
             >
               {status === "backing_up" ? (
                 <>
