@@ -122,9 +122,24 @@ export async function pushToGitHub(chapters) {
   return pushFileToGitHub(content, config.filePath, "Update memories");
 }
 
-export async function pushAuthToGitHub(creds, generateAuthJS) {
+export function generateAuthJS(creds) {
+  const credsCode = creds
+    .map(
+      (c) =>
+        `  {\n    username: ${JSON.stringify(c.username)},\n    password: ${JSON.stringify(c.password)},\n    role: ${JSON.stringify(c.role)},\n  }`,
+    )
+    .join(",\n");
+
+  return `export const CREDENTIALS = [\n${credsCode}\n];\n`;
+}
+
+export async function pushAuthToGitHub(creds) {
   const content = generateAuthJS(creds);
-  return pushFileToGitHub(content, "src/data/auth.js", "Update credentials");
+  return pushFileToGitHub(
+    content,
+    "src/data/credentials.js",
+    "Update credentials",
+  );
 }
 
 async function pushFileToGitHub(content, filePath, messagePrefix) {

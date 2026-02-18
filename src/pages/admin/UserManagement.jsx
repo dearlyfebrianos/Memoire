@@ -6,7 +6,6 @@ export default function UserManagement({
   currentUser,
   isOwner,
   initialCredentials,
-  authGenerator,
 }) {
   const [users, setUsers] = useState(initialCredentials);
   const [status, setStatus] = useState("idle"); // idle | saving | success | error
@@ -21,7 +20,7 @@ export default function UserManagement({
           : u,
       );
 
-      await pushAuthToGitHub(updatedUsers, authGenerator);
+      await pushAuthToGitHub(updatedUsers);
       setUsers(updatedUsers);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 5000);
