@@ -21,11 +21,12 @@ export const chapters = [
           { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352688/y2u75ig5pam3dlmmmzfj.jpg" },
           { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352694/dwzvv6tg0vyo37oclm1m.jpg" },
           { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352705/ldldbtjw2bmm7zxtsdpd.jpg" },
-          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352714/ahy0oh7ek1qxy75axcxh.jpg" }
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771352714/ahy0oh7ek1qxy75axcxh.jpg" },
+          { type: "video", url: "https://res.cloudinary.com/dg3awuzug/video/upload/v1771382984/wegsjq1u6ekucj4vinqn.mp4" }
         ],
         date: "9, Februari 2026",
         tags: ["girl friend", "boy friend", "foto bersama"],
-        hidden: false,
+        hidden: true,
       }
     ],
   }

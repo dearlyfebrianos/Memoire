@@ -48,6 +48,14 @@ export default function EditPhotoModal({
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [previewCurrent, setPreviewCurrent] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const triggerToast = (msg) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
+  };
 
   const setMediaUrl = (i, val) => {
     const arr = [...mediaInputs];
@@ -55,8 +63,10 @@ export default function EditPhotoModal({
     setMediaInputs(arr);
   };
 
-  const addMediaField = () =>
+  const addMediaField = () => {
     setMediaInputs([...mediaInputs, { url: "", type: "auto" }]);
+    triggerToast("Berhasil menambahkan 1 kolom link");
+  };
   const removeMediaField = (i) => {
     if (mediaInputs.length === 1) {
       setMediaUrl(0, "");
@@ -167,6 +177,41 @@ export default function EditPhotoModal({
               </svg>
             </button>
           </div>
+
+          <AnimatePresence>
+            {showToast && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="absolute bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none"
+              >
+                <div
+                  className="px-4 py-2 rounded-xl flex items-center gap-2 shadow-2xl"
+                  style={{
+                    background: "rgba(74, 222, 128, 0.1)",
+                    border: "1px solid rgba(74, 222, 128, 0.2)",
+                    color: "#4ade80",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span className="font-body text-xs font-medium">
+                    {toastMessage}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {success ? (
             <div className="flex flex-col items-center justify-center py-16 gap-4">

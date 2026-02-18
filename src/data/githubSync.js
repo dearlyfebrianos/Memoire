@@ -111,6 +111,7 @@ async function getFileSHA(token, config) {
 }
 
 export async function pushToGitHub(chapters) {
+  const content = generatePhotosJS(chapters);
   const config = {
     ...GITHUB_CONFIG,
     owner: localStorage.getItem("memoire_github_owner") || GITHUB_CONFIG.owner,
@@ -118,10 +119,26 @@ export async function pushToGitHub(chapters) {
     branch:
       localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
   };
+  return pushFileToGitHub(content, config.filePath, "Update memories");
+}
+
+export async function pushAuthToGitHub(creds, generateAuthJS) {
+  const content = generateAuthJS(creds);
+  return pushFileToGitHub(content, "src/data/auth.js", "Update credentials");
+}
+
+async function pushFileToGitHub(content, filePath, messagePrefix) {
+  const config = {
+    ...GITHUB_CONFIG,
+    owner: localStorage.getItem("memoire_github_owner") || GITHUB_CONFIG.owner,
+    repo: localStorage.getItem("memoire_github_repo") || GITHUB_CONFIG.repo,
+    branch:
+      localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
+    filePath,
+  };
   const token = config.getToken();
   if (!token) throw new Error("GitHub token belum diset.");
 
-  const content = generatePhotosJS(chapters);
   const contentBase64 = btoa(unescape(encodeURIComponent(content)));
   const sha = await getFileSHA(token, config);
 
@@ -135,7 +152,7 @@ export async function pushToGitHub(chapters) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message: `📸 Update memories — ${new Date().toLocaleString("id-ID")}`,
+        message: `🔐 ${messagePrefix} — ${new Date().toLocaleString("id-ID")}`,
         content: contentBase64,
         branch: config.branch,
         ...(sha ? { sha } : {}),
