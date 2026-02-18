@@ -17,6 +17,4 @@ export const CREDENTIALS = [
   }
 ];
 
-export const SECURITY_CONFIG = {
-  lockdownCode: "dearlyfebriano08"
-};
+export const SECURITY_CONFIG = undefined;
