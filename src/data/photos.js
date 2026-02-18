@@ -29,6 +29,20 @@ export const chapters = [
         hidden: true,
       }
     ],
+  },
+  {
+    id: "woi",
+    label: "woi",
+    slug: "woi",
+    years: "",
+    description: "",
+    coverGradient: "from-slate-900/40 to-gray-900/30",
+    accentColor: "#e8c4a0",
+    emoji: "📸",
+    hidden: false,
+    photos: [
+
+    ],
   }
 ];
 
