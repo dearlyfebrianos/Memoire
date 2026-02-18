@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../data/useStore";
-import { CREDENTIALS } from "../../data/credentials";
+import { CREDENTIALS } from "../../data/authData";
 import { useAuth, logout } from "../../data/auth";
 import { normalizeMediaItems } from "../../data/githubSync";
 import AddPhotoModal from "./AddPhotoModal";

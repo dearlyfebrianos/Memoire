@@ -1,8 +1,7 @@
 // CREDENTIALS imported only for internal use in login()
-import { CREDENTIALS } from "./credentials";
+import { CREDENTIALS } from "./authData";
 
 // We don't re-export CREDENTIALS to avoid circular dependency confusion
-
 
 const SESSION_KEY = "memoire_session";
 

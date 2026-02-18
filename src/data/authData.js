@@ -12,5 +12,3 @@ export const CREDENTIALS = [
     role: "admin",
   },
 ];
-
-// End of credentials data

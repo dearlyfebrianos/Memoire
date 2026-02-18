@@ -137,7 +137,7 @@ export async function pushAuthToGitHub(creds) {
   const content = generateAuthJS(creds);
   return pushFileToGitHub(
     content,
-    "src/data/credentials.js",
+    "src/data/authData.js",
     "Update credentials",
   );
 }
