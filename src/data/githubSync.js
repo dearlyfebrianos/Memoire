@@ -135,6 +135,46 @@ export async function pushToGitHub(chapters) {
   return jsRes; // Return JS result as primary
 }
 
+// === BACKUP & RESTORE ===
+
+function getTimestamp() {
+  const now = new Date();
+  return now.toISOString().replace(/[:.]/g, "-").slice(0, 19);
+}
+
+export async function pushBackupToGitHub(chapters, credentials) {
+  const timestamp = getTimestamp();
+  const folder = `backups/${timestamp}`;
+
+  const photosContent = generatePhotosJS(chapters);
+  const authContent = generateAuthJS(credentials);
+
+  // Push both files to backup folder
+  await Promise.all([
+    pushFileToGitHub(
+      photosContent,
+      `${folder}/photos.js`,
+      `Backup photos.js [${timestamp}]`,
+    ),
+    pushFileToGitHub(
+      authContent,
+      `${folder}/authData.js`,
+      `Backup authData.js [${timestamp}]`,
+    ),
+  ]);
+
+  return folder;
+}
+
+export async function restoreFromBackup(fileType, content) {
+  // fileType: 'photos' | 'auth'
+  const targetPath =
+    fileType === "photos" ? "src/data/photos.js" : "src/data/authData.js";
+  const message = `Restore ${fileType === "photos" ? "photos.js" : "authData.js"} from backup`;
+
+  return pushFileToGitHub(content, targetPath, message);
+}
+
 export function generateAuthJS(creds) {
   const credsCode = creds
     .map(

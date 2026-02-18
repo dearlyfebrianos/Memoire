@@ -10,7 +10,9 @@ export default function AdminSidebar({
 }) {
   const [expanded, setExpanded] = useState(() => {
     const saved = localStorage.getItem("memoire_sidebar_expanded");
-    return saved ? JSON.parse(saved) : { main: true, settings: false };
+    return saved
+      ? JSON.parse(saved)
+      : { main: true, folder: true, settings: false };
   });
 
   useEffect(() => {
@@ -142,6 +144,68 @@ export default function AdminSidebar({
             )}
           </AnimatePresence>
         </div>
+
+        {/* FOLDER SECTION (OWNER ONLY) */}
+        {userRole === "owner" && (
+          <div className="pt-2 space-y-1">
+            {!isCollapsed ? (
+              <button
+                onClick={() => toggleExpand("folder")}
+                className="w-full flex items-center justify-between px-4 py-2 font-display text-[10px] tracking-widest text-white/30 uppercase hover:text-white/60 transition-colors"
+              >
+                Folder
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className={`transition-transform duration-300 ${expanded.folder ? "rotate-180" : ""}`}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            ) : (
+              <div className="w-full h-[1px] bg-white/5 my-4" />
+            )}
+
+            <AnimatePresence initial={false}>
+              {(expanded.folder || isCollapsed) && (
+                <motion.div
+                  initial={
+                    isCollapsed
+                      ? { opacity: 1, height: "auto" }
+                      : { height: 0, opacity: 0 }
+                  }
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden space-y-1"
+                >
+                  <button
+                    onClick={() => setActiveTab("backup")}
+                    className="w-full flex items-center gap-3 py-2.5 rounded-r-xl font-body text-xs transition-all duration-200 group relative"
+                    style={menuStyle(activeTab === "backup")}
+                    title={isCollapsed ? "Backup & Restore" : ""}
+                  >
+                    <span
+                      className={`text-base transition-all ${isCollapsed ? "opacity-100" : "opacity-40"}`}
+                    >
+                      📂
+                    </span>
+                    {!isCollapsed && <span>Backup & Restore</span>}
+                    {isCollapsed && activeTab === "backup" && (
+                      <motion.div
+                        layoutId="active-pill"
+                        className="absolute left-0 w-1 h-6 bg-[#e8c4a0] rounded-r-full"
+                      />
+                    )}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* SETTINGS SECTION */}
         <div className="pt-2 space-y-1">

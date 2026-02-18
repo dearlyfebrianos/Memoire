@@ -13,6 +13,7 @@ import GitHubSettings from "./GithubSettings";
 import LinkGenerator from "./LinkGenerator";
 import AdminSidebar from "./AdminSidebar";
 import UserManagement from "./UserManagement";
+import BackupManager from "./BackupManager"; // Import BackupManager
 
 const ACCENT = "#e8c4a0";
 
@@ -578,7 +579,16 @@ export default function AdminDashboard() {
 
           {/* Dynamic Content Switching */}
           <AnimatePresence mode="wait">
-            {activeTab === "user" ? (
+            {activeTab === "backup" && isOwnerRole ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="h-full overflow-y-auto px-8 py-10 custom-scrollbar"
+              >
+                <BackupManager chapters={chapters} credentials={CREDENTIALS} />
+              </motion.div>
+            ) : activeTab === "user" ? (
               <motion.div
                 key="user"
                 initial={{ opacity: 0, x: 20 }}
