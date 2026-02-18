@@ -106,16 +106,10 @@ export default function BackupManager({ chapters, credentials }) {
 
         if (type === "auth") {
           // Must define the credentials export
-          if (
-            !content.includes("export const CREDENTIALS = [") &&
-            !content.includes("import { CREDENTIALS }") // Handle internal switch case if needed, but usually it's array
-          ) {
-            // Check strictly for the array definition as per backup format
-            if (!content.includes("username:") || !content.includes("role:")) {
-              throw new Error(
-                "Invalid structure: Missing username/role fields",
-              );
-            }
+          if (!content.includes("export const CREDENTIALS")) {
+            throw new Error(
+              "Invalid structure: Missing export const CREDENTIALS",
+            );
           }
         }
 
