@@ -1,5 +1,3 @@
-// Initial credentials — Note: In a real app this would be in a DB,
-// but we'll use the same GitHub-sync strategy as photos.js
 export const CREDENTIALS = [
   {
     username: "dearly",
@@ -8,7 +6,7 @@ export const CREDENTIALS = [
   },
   {
     username: "admin",
-    password: "memoireadmin2026",
+    password: "memoireadmin2024",
     role: "admin",
-  },
+  }
 ];

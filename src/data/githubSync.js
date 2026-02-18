@@ -1,7 +1,7 @@
 export const GITHUB_CONFIG = {
   owner: "dearlyfebrianos",
   repo: "memoire",
-  branch: "main",
+  branch: "master",
   filePath: "src/data/photos.js",
   getToken: () => localStorage.getItem("memoire_github_token") || "",
 };

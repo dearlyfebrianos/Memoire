@@ -15,5 +15,9 @@ echo Updating photos.js...
 git checkout origin/master -- src/data/photos.js
 
 echo.
-echo SYNCED! photos.js sudah terupdate.
+echo Updating authData.js...
+git checkout origin/master -- src/data/authData.js
+
+echo.
+echo SYNCED! Photos dan Credentials sudah terupdate.
 pause
