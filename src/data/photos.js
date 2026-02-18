@@ -31,9 +31,9 @@ export const chapters = [
     ],
   },
   {
-    id: "woi",
-    label: "woi",
-    slug: "woi",
+    id: "p",
+    label: "p",
+    slug: "p",
     years: "",
     description: "",
     coverGradient: "from-slate-900/40 to-gray-900/30",
