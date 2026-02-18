@@ -14,6 +14,7 @@ import LinkGenerator from "./LinkGenerator";
 import AdminSidebar from "./AdminSidebar";
 import UserManagement from "./UserManagement";
 import BackupManager from "./BackupManager";
+import EditChapterModal from "./EditChapterModal";
 
 const ACCENT = "#e8c4a0";
 
@@ -156,6 +157,7 @@ function ChapterRow({
   onDeletePhoto,
   onTogglePhotoHidden,
   onDelete,
+  onEdit,
   onToggleHidden,
   isExpanded,
   onToggleExpand,
@@ -257,6 +259,15 @@ function ChapterRow({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      onEdit();
+                    }}
+                    className="px-4 py-2 rounded-xl border border-white/5 text-[10px] text-white/40 uppercase tracking-widest hover:bg-white/5 transition-all hover:text-[#e8c4a0]"
+                  >
+                    Edit Chapter
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       onDelete();
                     }}
                     className="px-4 py-2 rounded-xl border border-red-500/10 text-[10px] text-red-500/50 uppercase tracking-widest hover:bg-red-500/10 transition-all"
@@ -326,6 +337,7 @@ export default function AdminDashboard() {
   const [showAddPhoto, setShowAddPhoto] = useState(false);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [editPhoto, setEditPhoto] = useState(null);
+  const [editChapter, setEditChapter] = useState(null);
   const [addPhotoToChapter, setAddPhotoToChapter] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [expandedChapter, setExpandedChapter] = useState(null);
@@ -333,12 +345,82 @@ export default function AdminDashboard() {
   const [showLinkGenerator, setShowLinkGenerator] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [syncNotify, setSyncNotify] = useState(null);
+  const [buildStatus, setBuildStatus] = useState({ state: "idle", sha: null }); // idle | building | success | error
+
+  // Poll Vercel Status via GitHub - Targeted & High Frequency
+  useEffect(() => {
+    if (buildStatus.state !== "building" || !buildStatus.sha) return;
+
+    let pollCount = 0;
+    const maxPolls = 120; // 5 mins total at 2.5s
+    const interval = setInterval(async () => {
+      pollCount++;
+      if (pollCount > maxPolls) {
+        setBuildStatus({ state: "error", message: "Build timeout" });
+        clearInterval(interval);
+        return;
+      }
+
+      try {
+        const token = GITHUB_CONFIG.getToken();
+        // Fetch statuses (plural) to find Vercel specifically
+        const res = await fetch(
+          `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits/${buildStatus.sha}/statuses`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github+json",
+            },
+          },
+        );
+
+        if (res.ok) {
+          const statuses = await res.json();
+          // Find the one from Vercel
+          const vStatus = statuses.find((s) =>
+            s.context.toLowerCase().includes("vercel"),
+          );
+
+          if (vStatus) {
+            if (vStatus.state === "success") {
+              setBuildStatus({ state: "success", sha: buildStatus.sha });
+              setSyncNotify({ status: "success", isLive: true });
+              clearInterval(interval);
+
+              // Auto-cleanup and smooth transition
+              setTimeout(() => {
+                setBuildStatus({ state: "idle", sha: null });
+                setSyncNotify(null); // Clear notification after build success
+              }, 4000);
+            } else if (
+              vStatus.state === "failure" ||
+              vStatus.state === "error"
+            ) {
+              setBuildStatus({
+                state: "error",
+                message: "Vercel Build Failed",
+              });
+              clearInterval(interval);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Polling build failed:", e);
+      }
+    }, 2500); // Check every 2.5s
+
+    return () => clearInterval(interval);
+  }, [buildStatus.state, buildStatus.sha]);
 
   useEffect(() => {
     const handleSyncStatus = (e) => {
       setSyncNotify(e.detail);
-      if (e.detail.status === "success") {
-        setTimeout(() => setSyncNotify(null), 7000);
+      if (e.detail.status === "success" && e.detail.commitSha) {
+        // Start tracking Vercel build
+        setBuildStatus({ state: "building", sha: e.detail.commitSha });
+      }
+      if (e.detail.status === "success" && !e.detail.isLive) {
+        setTimeout(() => setSyncNotify(null), 15000); // Keep longer for build tracking
       }
     };
     window.addEventListener("github-sync-status", handleSyncStatus);
@@ -466,6 +548,104 @@ export default function AdminDashboard() {
         <div className="fixed w-[500px] h-[500px] rounded-full pointer-events-none bg-purple-500/5 blur-[140px] bottom-0 right-0" />
 
         <div className="relative z-10 max-w-6xl mx-auto">
+          {/* Vercel Build Tracker UI */}
+          <AnimatePresence>
+            {buildStatus.state !== "idle" && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="mb-8 p-1 rounded-2xl bg-gradient-to-r from-white/5 via-white/10 to-white/5 border border-white/5 overflow-hidden"
+              >
+                <div className="bg-[#080810] rounded-xl p-4 flex items-center justify-between gap-6 relative">
+                  {/* Progress Glow */}
+                  {buildStatus.state === "building" && (
+                    <motion.div
+                      className="absolute bottom-0 left-0 h-[2px] bg-[#e8c4a0] shadow-[0_0_15px_#e8c4a0]"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "92%" }}
+                      transition={{ duration: 40, ease: "easeOut" }}
+                    />
+                  )}
+                  {buildStatus.state === "success" && (
+                    <motion.div
+                      className="absolute bottom-0 left-0 h-[2px] bg-green-500 shadow-[0_0_15px_#22c55e]"
+                      initial={{ width: "92%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  )}
+
+                  <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                    <div
+                      className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center border shrink-0 ${
+                        buildStatus.state === "success"
+                          ? "bg-green-500/10 border-green-500/20 text-green-400"
+                          : buildStatus.state === "error"
+                            ? "bg-red-500/10 border-red-500/20 text-red-400"
+                            : "bg-white/5 border-white/10 text-[#e8c4a0]"
+                      }`}
+                    >
+                      {buildStatus.state === "building" ? (
+                        <svg
+                          className="animate-spin"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                        >
+                          <path d="M21 12a9 9 0 11-6.219-8.56" />
+                        </svg>
+                      ) : buildStatus.state === "success" ? (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3.5"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <span className="font-bold">!</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-display text-[10px] md:text-xs uppercase tracking-widest text-white/90 truncate">
+                        {buildStatus.state === "building"
+                          ? "Vercel Build Active"
+                          : buildStatus.state === "success"
+                            ? "Deployment Ready"
+                            : "Build Error"}
+                      </h4>
+                      <p className="font-body text-[8px] md:text-[9px] text-white/30 uppercase tracking-tighter truncate">
+                        {buildStatus.state === "building"
+                          ? "Building project & propagating edge..."
+                          : buildStatus.state === "success"
+                            ? "Changes are now live to the public"
+                            : buildStatus.message}
+                      </p>
+                    </div>
+                  </div>
+
+                  {buildStatus.state === "success" && (
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="font-display text-[9px] text-green-400 uppercase tracking-widest animate-pulse">
+                        Synchronizing...
+                      </span>
+                      <p className="font-body text-[8px] text-white/20 uppercase tracking-tighter">
+                        Data ready at edge
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Top Bar Navigation (Simplified) */}
           <div className="flex items-center justify-between mb-16 flex-wrap gap-8">
             <div className="flex items-center gap-5 lg:hidden">
@@ -823,6 +1003,7 @@ export default function AdminDashboard() {
                           label: c.label,
                         })
                       }
+                      onEdit={() => setEditChapter(c)}
                       onToggleHidden={() => toggleChapterHidden(c.id)}
                       isExpanded={expandedChapter === c.id}
                       onToggleExpand={() =>
@@ -897,6 +1078,12 @@ export default function AdminDashboard() {
       )}
       {showAddChapter && (
         <AddChapterModal onClose={() => setShowAddChapter(false)} />
+      )}
+      {editChapter && (
+        <EditChapterModal
+          chapter={editChapter}
+          onClose={() => setEditChapter(null)}
+        />
       )}
       {editPhoto && (
         <EditPhotoModal
@@ -989,7 +1176,9 @@ export default function AdminDashboard() {
               className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
                 syncNotify.status === "success"
                   ? "bg-green-500/10 text-green-400"
-                  : "bg-red-500/10 text-red-400"
+                  : syncNotify.status === "syncing"
+                    ? "bg-amber-500/10 text-amber-400"
+                    : "bg-red-500/10 text-red-400"
               }`}
             >
               {syncNotify.status === "success" ? (
@@ -1002,6 +1191,18 @@ export default function AdminDashboard() {
                   strokeWidth="3"
                 >
                   <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : syncNotify.status === "syncing" ? (
+                <svg
+                  className="animate-spin"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                >
+                  <path d="M21 12a9 9 0 11-6.219-8.56" />
                 </svg>
               ) : (
                 <svg
@@ -1022,12 +1223,16 @@ export default function AdminDashboard() {
               <h4 className="font-display text-xs uppercase tracking-widest text-white/90">
                 {syncNotify.status === "success"
                   ? "Live on GitHub"
-                  : "Sync Failed"}
+                  : syncNotify.status === "syncing"
+                    ? "Publishing..."
+                    : "Sync Failed"}
               </h4>
               <p className="font-body text-[10px] text-white/30 mt-1">
                 {syncNotify.status === "success"
                   ? "Successfully published to repository"
-                  : syncNotify.message || "Failed to push updates"}
+                  : syncNotify.status === "syncing"
+                    ? "Securely updating memories to cloud"
+                    : syncNotify.message || "Failed to push updates"}
               </p>
             </div>
             <button

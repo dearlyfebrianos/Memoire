@@ -94,28 +94,46 @@ export function useStore() {
   const autoSync = useCallback(async (currentChapters) => {
     try {
       const token = GITHUB_CONFIG.getToken();
-      if (!token) return; // Silent if no token is configured
+      if (!token) return null;
 
-      // We use a small delay to ensure multiple rapid changes (if any) are caught
-      // but since these are user-triggered modals, single calls are fine.
-      await pushToGitHub(currentChapters);
+      // Dispatch "syncing" status so UI can show initial loading
+      window.dispatchEvent(
+        new CustomEvent("github-sync-status", {
+          detail: { status: "syncing", timestamp: Date.now() },
+        }),
+      );
 
-      // Notify any active UI about the background sync success
-      const event = new CustomEvent("github-sync-status", {
-        detail: { status: "success", timestamp: Date.now() },
-      });
-      window.dispatchEvent(event);
+      const result = await pushToGitHub(currentChapters);
+
+      // We wait a tiny bit to make sure the user sees the "Processing" state
+      // before showing the Vercel Tracker
+      setTimeout(() => {
+        const event = new CustomEvent("github-sync-status", {
+          detail: {
+            status: "success",
+            timestamp: Date.now(),
+            commitSha: result.commitSha,
+          },
+        });
+        window.dispatchEvent(event);
+      }, 500);
+
+      return result;
     } catch (e) {
       console.error("Auto-sync failed:", e);
+      // We check if the result was actually returned before the error (shouldn't happen with await)
+      // but the main issue is githubSync catch block.
+      // If we are here, it means pushToGitHub threw an exception.
       const event = new CustomEvent("github-sync-status", {
         detail: { status: "error", message: e.message, timestamp: Date.now() },
       });
       window.dispatchEvent(event);
+      throw e;
     }
   }, []);
 
   const addChapter = useCallback(
-    (chapter) => {
+    async (chapter) => {
       const newChapter = {
         ...chapter,
         id: chapter.slug || chapter.label.toLowerCase().replace(/\s+/g, "-"),
@@ -125,47 +143,47 @@ export function useStore() {
       const nextChapters = [...globalChapters, newChapter];
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );
 
   const updateChapter = useCallback(
-    (id, updates) => {
+    async (id, updates) => {
       const nextChapters = globalChapters.map((c) =>
         c.id === id ? { ...c, ...updates } : c,
       );
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );
 
   const deleteChapter = useCallback(
-    (id) => {
+    async (id) => {
       const nextChapters = globalChapters.filter((c) => c.id !== id);
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );
 
   const toggleChapterHidden = useCallback(
-    (id) => {
+    async (id) => {
       const nextChapters = globalChapters.map((c) =>
         c.id === id ? { ...c, hidden: !c.hidden } : c,
       );
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );
 
   const addPhoto = useCallback(
-    (chapterId, photo) => {
+    async (chapterId, photo) => {
       const newPhoto = normalizePhoto({
         ...photo,
         id: Date.now() + Math.random(),
@@ -176,13 +194,13 @@ export function useStore() {
       );
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );
 
   const updatePhoto = useCallback(
-    (chapterId, photoId, updates) => {
+    async (chapterId, photoId, updates) => {
       const nextChapters = globalChapters.map((c) =>
         c.id === chapterId
           ? {
@@ -195,13 +213,13 @@ export function useStore() {
       );
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );
 
   const deletePhoto = useCallback(
-    (chapterId, photoId) => {
+    async (chapterId, photoId) => {
       const nextChapters = globalChapters.map((c) =>
         c.id === chapterId
           ? { ...c, photos: c.photos.filter((p) => p.id !== photoId) }
@@ -209,13 +227,13 @@ export function useStore() {
       );
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );
 
   const togglePhotoHidden = useCallback(
-    (chapterId, photoId) => {
+    async (chapterId, photoId) => {
       const nextChapters = globalChapters.map((c) =>
         c.id === chapterId
           ? {
@@ -228,7 +246,7 @@ export function useStore() {
       );
       globalChapters = nextChapters;
       notify();
-      autoSync(nextChapters);
+      return await autoSync(nextChapters);
     },
     [autoSync],
   );

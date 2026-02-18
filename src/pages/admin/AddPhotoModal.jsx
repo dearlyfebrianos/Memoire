@@ -79,19 +79,25 @@ export default function AddPhotoModal({ chapters, defaultChapterId, onClose }) {
   const validItems = mediaInputs.filter((m) => m.url.trim() !== "");
   const canSave = title.trim() && validItems.length > 0 && chapterId;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSave) return;
     setSaving(true);
+
     const mediaItems = validItems.map((m) => ({
       type: m.type === "auto" ? getMediaType(m.url) : m.type,
       url: m.url.trim(),
     }));
-    setTimeout(() => {
-      addPhoto(chapterId, { title, caption, mediaItems, date, tags });
+
+    try {
+      // addPhoto now triggers autoSync which returns a promise in our logic
+      await addPhoto(chapterId, { title, caption, mediaItems, date, tags });
       setSuccess(true);
-      setTimeout(onClose, 1200);
-    }, 500);
+      setTimeout(onClose, 1500);
+    } catch (err) {
+      setSaving(false);
+      alert("Failed to save: " + err.message);
+    }
   };
 
   const videoCount = validItems.filter(

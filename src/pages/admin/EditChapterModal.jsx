@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../data/useStore";
 
@@ -33,48 +33,41 @@ const PRESET_COLORS = [
   { name: "Teal", value: "#2dd4bf" },
 ];
 
-export default function AddChapterModal({ onClose }) {
-  const { addChapter } = useStore();
+export default function EditChapterModal({ chapter, onClose }) {
+  const { updateChapter } = useStore();
   const [form, setForm] = useState({
-    label: "",
-    slug: "",
-    years: "",
-    description: "",
-    emoji: "📸",
-    accentColor: "#e8c4a0",
+    label: chapter?.label || "",
+    slug: chapter?.slug || "",
+    years: chapter?.years || "",
+    description: chapter?.description || "",
+    emoji: chapter?.emoji || "📸",
+    accentColor: chapter?.accentColor || "#e8c4a0",
     customColor: "",
   });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  const handleLabelChange = (e) => {
-    const label = e.target.value;
-    const slug = label
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "");
-    setForm((f) => ({ ...f, label, slug }));
-  };
+  const [showCustomEmoji, setShowCustomEmoji] = useState(
+    !PRESET_EMOJIS.includes(chapter?.emoji),
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.label) return;
     setSaving(true);
     try {
-      await addChapter({
+      await updateChapter(chapter.id, {
         label: form.label,
-        slug: form.slug || form.label.toLowerCase().replace(/\s+/g, "-"),
+        slug: form.slug,
         years: form.years,
         description: form.description,
         emoji: form.emoji,
         accentColor: form.customColor || form.accentColor,
-        coverGradient: "from-slate-900/40 to-gray-900/30",
       });
       setSuccess(true);
       setTimeout(onClose, 1500);
     } catch (err) {
       setSaving(false);
-      alert("Gagal membuat chapter: " + err.message);
+      alert("Gagal mengupdate chapter: " + err.message);
     }
   };
 
@@ -92,9 +85,6 @@ export default function AddChapterModal({ onClose }) {
     outline: "none",
     cursor: "text",
   };
-
-  // Emoji logic
-  const [showCustomEmoji, setShowCustomEmoji] = useState(false);
 
   return (
     <AnimatePresence>
@@ -128,13 +118,13 @@ export default function AddChapterModal({ onClose }) {
                 className="font-display text-2xl"
                 style={{ color: "rgba(255,255,255,0.9)", fontWeight: 300 }}
               >
-                Chapter Baru
+                Edit Chapter
               </h2>
               <p
                 className="font-body text-xs mt-0.5"
                 style={{ color: "rgba(255,255,255,0.35)" }}
               >
-                Buat kategori memori baru
+                Ubah informasi chapter ini
               </p>
             </div>
             <button
@@ -183,7 +173,7 @@ export default function AddChapterModal({ onClose }) {
                 className="font-display text-xl"
                 style={{ color: "rgba(255,255,255,0.8)", fontWeight: 300 }}
               >
-                Chapter berhasil dibuat!
+                Chapter berhasil diupdate!
               </p>
             </div>
           ) : (
@@ -226,7 +216,9 @@ export default function AddChapterModal({ onClose }) {
                   type="text"
                   placeholder="contoh: Kuliah, Liburan, Keluarga..."
                   value={form.label}
-                  onChange={handleLabelChange}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, label: e.target.value }))
+                  }
                   onFocus={(e) => {
                     e.target.style.borderColor = `${accent}55`;
                   }}
@@ -247,7 +239,7 @@ export default function AddChapterModal({ onClose }) {
                 <input
                   style={{ ...inputStyle, color: "rgba(255,255,255,0.5)" }}
                   type="text"
-                  placeholder="auto-generate dari nama"
+                  placeholder="slug"
                   value={form.slug}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, slug: e.target.value }))
@@ -259,12 +251,6 @@ export default function AddChapterModal({ onClose }) {
                     e.target.style.borderColor = "rgba(255,255,255,0.1)";
                   }}
                 />
-                <p
-                  className="font-body text-xs mt-1"
-                  style={{ color: "rgba(255,255,255,0.25)" }}
-                >
-                  URL: /chapter/{form.slug || "nama-chapter"}
-                </p>
               </div>
 
               {/* Tahun */}
@@ -278,7 +264,7 @@ export default function AddChapterModal({ onClose }) {
                 <input
                   style={inputStyle}
                   type="text"
-                  placeholder="contoh: 2018 – 2022 atau 2023 – Present"
+                  placeholder="contoh: 2018 – 2022"
                   value={form.years}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, years: e.target.value }))
@@ -490,10 +476,10 @@ export default function AddChapterModal({ onClose }) {
                       >
                         <path d="M21 12a9 9 0 11-6.219-8.56" />
                       </svg>
-                      Membuat...
+                      Menyimpan...
                     </>
                   ) : (
-                    "Buat Chapter"
+                    "Simpan Perubahan"
                   )}
                 </button>
               </div>

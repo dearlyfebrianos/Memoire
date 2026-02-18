@@ -133,20 +133,30 @@ export async function pushToGitHub(chapters) {
 
   const config = { ...GITHUB_CONFIG };
 
-  // Push JS and JSON sequentially to avoid SHA Conflicts
+  // 1. Push JS (Primary)
   const jsRes = await pushFileToGitHub(
     jsContent,
     config.filePath,
     "Update memories (JS)",
   );
 
-  const jsonRes = await pushFileToGitHub(
-    jsonContent,
-    "src/data/photos.json",
-    "Update memories (JSON)",
-  );
+  // 2. Push JSON (Secondary/Live update source)
+  // We wrap this in try-catch so if it fails due to SHA latency,
+  // the main operation is still considered a success (since JS is updated).
+  try {
+    await pushFileToGitHub(
+      jsonContent,
+      "src/data/photos.json",
+      "Update memories (JSON)",
+    );
+  } catch (e) {
+    console.warn(
+      "Secondary JSON sync failed, but primary JS succeeded:",
+      e.message,
+    );
+  }
 
-  return jsRes; // Return JS result as primary
+  return jsRes; // Always return JS result as the source of truth for UI
 }
 
 // === BACKUP & RESTORE ===
@@ -246,7 +256,7 @@ async function pushFileToGitHub(content, filePath, messagePrefix) {
   return {
     success: true,
     commitUrl: result.commit?.html_url,
-    commitSha: result.commit?.sha?.slice(0, 7),
+    commitSha: result.commit?.sha, // Full SHA for reliable build tracking
   };
 }
 
