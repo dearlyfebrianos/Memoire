@@ -18,5 +18,5 @@ export const CREDENTIALS = [
 ];
 
 export const SECURITY_CONFIG = {
-  lockdownCode: "dearlyfebriano"
+  "lockdownCode": "dearlyfebriano"
 };
