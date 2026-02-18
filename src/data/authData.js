@@ -11,10 +11,12 @@ export const CREDENTIALS = [
     username: "admin",
     password: "adminmemo2026",
     role: "admin",
-    displayName: "Admin",
+    displayName: "Admin Jos",
     avatar: "https://img.freepik.com/free-vector/business-user-cog_78370-7040.jpg",
     bio: "Tidak bisa berkata kata, saya hanyalah administrator yang membantu pengguna upload foto supaya muncul pada halaman utama."
   }
 ];
 
-export const SECURITY_CONFIG = undefined;
+export const SECURITY_CONFIG = {
+  lockdownCode: "dearlyfebriano08"
+};
