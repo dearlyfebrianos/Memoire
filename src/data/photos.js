@@ -13,7 +13,7 @@ export const chapters = [
       {
         id: 1771325247206.3179,
         title: "Memories On Februari 9th, 2026",
-        caption: "Momen kebersamaan kami usai berolahraga, sebelum menuju Kenjeran untuk menikmati waktu istirahat sejenak.",
+        caption: "Momen kebersamaan kami usai berolahraga, sebelum menuju Kenjeran untuk menikmati waktu istirahat sejenak bersama.",
         mediaItems: [
           { type: "image", url: "https://i.ibb.co.com/HT8G9WMc/Whats-App-Image-2026-02-17-at-17-42-16.jpg" },
           { type: "image", url: "https://i.ibb.co.com/tPh5W8DP/4.jpg" },

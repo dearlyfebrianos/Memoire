@@ -11,7 +11,7 @@ export const CREDENTIALS = [
     username: "admin",
     password: "adminmemo2026",
     role: "admin",
-    displayName: "Administrator",
+    displayName: "Admin Memo",
     avatar: "https://img.freepik.com/free-vector/business-user-cog_78370-7040.jpg",
     bio: "Tidak bisa berkata kata, saya hanyalah administrator yang membantu pengguna upload foto supaya muncul pada halaman utama."
   }
