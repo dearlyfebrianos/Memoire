@@ -23,6 +23,7 @@ export default function UserManagement({
     newPassword,
     newAvatar,
     newBio,
+    newDisplayName,
   ) => {
     setStatus("saving");
     try {
@@ -34,6 +35,7 @@ export default function UserManagement({
               password: newPassword,
               avatar: newAvatar,
               bio: newBio,
+              displayName: newDisplayName,
             }
           : u,
       );
@@ -185,6 +187,7 @@ function UserCard({ user, onSave, isSelf, status }) {
   const [password, setPassword] = useState(user.password);
   const [avatar, setAvatar] = useState(user.avatar || "");
   const [bio, setBio] = useState(user.bio || "");
+  const [displayName, setDisplayName] = useState(user.displayName || "");
   const [showPass, setShowPass] = useState(false);
   const [focused, setFocused] = useState(null);
 
@@ -192,7 +195,8 @@ function UserCard({ user, onSave, isSelf, status }) {
     username !== user.username ||
     password !== user.password ||
     avatar !== (user.avatar || "") ||
-    bio !== (user.bio || "");
+    bio !== (user.bio || "") ||
+    displayName !== (user.displayName || "");
 
   return (
     <div className="group relative p-1 rounded-3xl bg-gradient-to-b from-white/5 to-white/0 overflow-hidden transition-all duration-500 hover:from-white/10 w-full">
@@ -209,7 +213,8 @@ function UserCard({ user, onSave, isSelf, status }) {
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src =
-                      "https://ui-avatars.com/api/?name=" + username;
+                      "https://ui-avatars.com/api/?name=" +
+                      (displayName || username);
                   }}
                 />
               ) : (
@@ -220,7 +225,7 @@ function UserCard({ user, onSave, isSelf, status }) {
                       : "bg-white/5 text-white/40 border border-white/10"
                   }`}
                 >
-                  {user.role[0].toUpperCase()}
+                  {(displayName || user.role)[0].toUpperCase()}
                 </div>
               )}
               {isSelf && (
@@ -231,7 +236,10 @@ function UserCard({ user, onSave, isSelf, status }) {
             </div>
             <div>
               <h3 className="font-display text-2xl text-white/90 capitalize tracking-wide">
-                {user.role} Account
+                {displayName || username}
+                <span className="ml-3 text-[10px] uppercase tracking-[0.2em] text-white/20 border border-white/10 px-2 py-1 rounded-md">
+                  {user.role}
+                </span>
               </h3>
               <p className="font-body text-sm text-white/30 tracking-wide mt-1 max-w-sm">
                 {bio || (isSelf ? "Tambahkan bio anda..." : "Belum ada bio.")}
@@ -247,6 +255,43 @@ function UserCard({ user, onSave, isSelf, status }) {
             <h4 className="font-display text-xs uppercase tracking-widest text-[#e8c4a0]/60 border-b border-white/5 pb-2 mb-4">
               Public Profile
             </h4>
+
+            {/* Display Name Input */}
+            <div className="space-y-3">
+              <label className="text-xs uppercase tracking-widest text-white/30 font-medium ml-1">
+                Display Name
+              </label>
+              <div
+                className={`relative flex items-center bg-white/[0.03] border rounded-2xl transition-all duration-300 ${
+                  focused === "display"
+                    ? "border-[#e8c4a0]/50 bg-white/[0.06] shadow-[0_0_20px_-10px_rgba(232,196,160,0.3)]"
+                    : "border-white/10 hover:border-white/20"
+                }`}
+              >
+                <div className="pl-6 text-white/20">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  onFocus={() => setFocused("display")}
+                  onBlur={() => setFocused(null)}
+                  type="text"
+                  className="w-full bg-transparent border-none px-6 py-5 font-body text-sm text-white/90 placeholder-white/20 focus:ring-0"
+                  placeholder="Nama keren kamu..."
+                />
+              </div>
+            </div>
 
             {/* Avatar Input */}
             <div className="space-y-3">
@@ -441,7 +486,14 @@ function UserCard({ user, onSave, isSelf, status }) {
           <button
             disabled={!hasChanged || status === "saving"}
             onClick={() =>
-              onSave(user.username, username, password, avatar, bio)
+              onSave(
+                user.username,
+                username,
+                password,
+                avatar,
+                bio,
+                displayName,
+              )
             }
             className="group/btn w-full relative overflow-hidden rounded-2xl py-5 font-display text-sm uppercase tracking-[0.2em] transition-all duration-300 transform active:scale-[0.99]"
             style={{

@@ -403,6 +403,7 @@ export default function AdminDashboard() {
           setActiveTab={setActiveTab}
           userRole={auth.role}
           username={auth.username}
+          displayName={currentUserData?.displayName}
           userAvatar={currentUserData?.avatar}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
@@ -435,6 +436,7 @@ export default function AdminDashboard() {
                 }}
                 userRole={auth.role}
                 username={auth.username}
+                displayName={currentUserData?.displayName}
                 userAvatar={currentUserData?.avatar}
                 isCollapsed={false}
                 onToggleCollapse={() => setShowMobileSidebar(false)}

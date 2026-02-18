@@ -78,13 +78,34 @@ export default function BackupManager({ chapters, credentials }) {
 
       // 2. Advanced Logic & Security Validation
       try {
-        // Security Check: Prevent dangerous patterns
-        if (
-          content.includes("eval(") ||
-          content.includes("document.cookie") ||
-          content.includes("localStorage.clear")
-        ) {
-          throw new Error("Security Alert: Suspicious code detected!");
+        // Security Check: Broadened scanning for dangerous patterns
+        const dangerousPatterns = [
+          "eval(",
+          "Function(",
+          "setTimeout(",
+          "setInterval(",
+          "document.cookie",
+          "localStorage",
+          "sessionStorage",
+          "indexedDB",
+          "fetch(",
+          "XMLHttpRequest",
+          "WebSocket",
+          ".innerHTML",
+          ".outerHTML",
+          ".insertAdjacentHTML",
+          ".setAttribute",
+          "window.",
+          "document.",
+          "process.",
+          "require(",
+        ];
+
+        const foundPattern = dangerousPatterns.find((p) => content.includes(p));
+        if (foundPattern) {
+          throw new Error(
+            `Security Alert: Suspicious pattern '${foundPattern}' detected! Restoration blocked.`,
+          );
         }
 
         if (type === "photos") {

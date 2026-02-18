@@ -179,7 +179,7 @@ export function generateAuthJS(creds) {
   const credsCode = creds
     .map(
       (c) =>
-        `  {\n    username: ${JSON.stringify(c.username)},\n    password: ${JSON.stringify(c.password)},\n    role: ${JSON.stringify(c.role)},\n    avatar: ${JSON.stringify(c.avatar || "")},\n    bio: ${JSON.stringify(c.bio || "")}\n  }`,
+        `  {\n    username: ${JSON.stringify(c.username)},\n    password: ${JSON.stringify(c.password)},\n    role: ${JSON.stringify(c.role)},\n    displayName: ${JSON.stringify(c.displayName || "")},\n    avatar: ${JSON.stringify(c.avatar || "")},\n    bio: ${JSON.stringify(c.bio || "")}\n  }`,
     )
     .join(",\n");
 

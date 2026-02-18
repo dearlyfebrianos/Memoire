@@ -6,6 +6,7 @@ export default function AdminSidebar({
   setActiveTab,
   userRole,
   username,
+  displayName,
   userAvatar,
   isCollapsed,
   onToggleCollapse,
@@ -279,16 +280,17 @@ export default function AdminSidebar({
             {userAvatar ? (
               <img
                 src={userAvatar}
-                alt={username}
+                alt={displayName || username}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.style.display = "none";
-                  e.target.parentElement.innerText =
-                    userRole?.[0]?.toUpperCase();
+                  e.target.parentElement.innerText = (displayName ||
+                    username ||
+                    userRole)?.[0]?.toUpperCase();
                 }}
               />
             ) : (
-              userRole?.[0]?.toUpperCase()
+              (displayName || username || userRole)?.[0]?.toUpperCase()
             )}
           </div>
           {!isCollapsed && (
@@ -298,7 +300,7 @@ export default function AdminSidebar({
               className="min-w-0"
             >
               <p className="font-body text-[10px] text-white/80 truncate capitalize">
-                {username}
+                {displayName || username}
               </p>
               <p className="font-body text-[8px] text-white/20 uppercase tracking-tighter">
                 {userRole}
