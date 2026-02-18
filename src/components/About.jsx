@@ -233,7 +233,7 @@ export default function About() {
         </motion.div>
 
         {/* Baris statistik */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 mb-20">
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -267,6 +267,93 @@ export default function About() {
             </motion.div>
           ))}
         </div>
+
+        {/* Tentang Kami / Cerita & Filosofi */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="pt-16 border-t border-white/5"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
+            <div className="lg:col-span-3 space-y-8">
+              <div>
+                <h3 className="font-display text-3xl text-[#e8c4a0] mb-6 tracking-tight">
+                  Tentang Kami & Cerita Kami
+                </h3>
+                <div
+                  className="space-y-6 font-body text-sm leading-relaxed"
+                  style={{ color: "rgba(255,255,255,0.5)" }}
+                >
+                  <p>
+                    Memoire bukan sekadar proyek pengembangan web bagi saya; ia
+                    adalah sebuah perjalanan personal. Sebagai seorang Fullstack
+                    Developer, saya sering terfokus pada fungsionalitas dan
+                    kode, namun dalam proyek ini, saya ingin menyentuh sisi yang
+                    lebih manusiawi: **Hati dan Kenangan**.
+                  </p>
+                  <p>
+                    Owner terinspirasi untuk membangun platform ini karena
+                    keresahan akan betapa cepatnya momen-momen berharga hilang
+                    di tengah banjirnya informasi digital. Kami ingin
+                    menciptakan sebuah tempat yang "hening" — jauh dari
+                    hingar-bingar media sosial, di mana setiap foto bisa
+                    bernapas dan setiap cerita bisa terdengar kembali.
+                  </p>
+                  <p>
+                    Visi kami adalah menjadikan Memoire sebagai warisan digital
+                    yang elegan. Setiap baris kode yang ditulis di sini membawa
+                    misi untuk menjaga agar kenangan Anda tetap abadi, tajam,
+                    dan penuh rasa, bahkan setelah bertahun-tahun berlalu.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 space-y-6">
+              <div
+                className="p-8 rounded-[2rem] relative overflow-hidden group"
+                style={{
+                  background: "rgba(232,196,160,0.03)",
+                  border: "1px solid rgba(232,196,160,0.1)",
+                }}
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-10 font-display text-6xl">
+                  “
+                </div>
+                <h4 className="font-display text-lg text-[#e8c4a0] mb-4">
+                  Filosofi Kami
+                </h4>
+                <p className="font-body text-xs leading-loose text-white/40 italic">
+                  "Kita membangun teknologi bukan untuk menggantikan ingatan,
+                  tetapi untuk memberinya tempat tinggal yang layak. Karena pada
+                  akhirnya, we are just a collection of memories."
+                </p>
+                <div className="mt-6 flex items-center gap-3">
+                  <div className="w-8 h-[1px] bg-[#e8c4a0]/30" />
+                  <span className="font-display text-[10px] uppercase tracking-widest text-[#e8c4a0]/60">
+                    The Developer
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-white/3 border border-white/5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#e8c4a0]/10 flex items-center justify-center text-lg">
+                  💡
+                </div>
+                <div>
+                  <div className="font-display text-xs text-white/80 uppercase tracking-widest">
+                    Inspirasi Utama
+                  </div>
+                  <div className="font-body text-[10px] text-white/30 mt-1">
+                    Digital Preservation & Human Legacies
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
