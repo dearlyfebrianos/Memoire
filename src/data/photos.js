@@ -32,13 +32,13 @@ export const chapters = [
   },
   {
     id: "test",
-    label: "test",
+    label: "test admin",
     slug: "test",
     years: "",
     description: "",
     coverGradient: "from-slate-900/40 to-gray-900/30",
     accentColor: "#e8c4a0",
-    emoji: "📸",
+    emoji: "⚡",
     hidden: false,
     photos: [
 
