@@ -1,13 +1,13 @@
 export const chapters = [
   {
     id: "aku--eshal",
-    label: "Aku & Eshal",
+    label: "Dearly & Eshal",
     slug: "aku--eshal",
     years: "2026",
     description: "sebuah Bab yang berisi foto kenangan aku dan eshal",
     coverGradient: "from-slate-900/40 to-gray-900/30",
     accentColor: "#f472b6",
-    emoji: "🌸",
+    emoji: "💖",
     hidden: true,
     photos: [
       {

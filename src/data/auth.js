@@ -1,19 +1,24 @@
 /**
  * auth.js
- * 
- * IMPORTANT: We deliberately DO NOT import CREDENTIALS from authData.js statically.
- * Static ES module imports are frozen at Vite build time and will NEVER reflect
- * updates pushed to GitHub after deployment. Instead, credentials are always
- * fetched live from GitHub or passed in at runtime.
+ *
+ * Sumber kebenaran: authData.js (static import — works di local & production)
+ * GitHub fetch: hanya dipakai untuk manual refresh setelah push ke repo
+ *
+ * Kenapa static import lebih baik untuk kasus ini:
+ * - Local dev: langsung baca file, tidak perlu network
+ * - Production: Vercel rebuild bundle setiap kali authData.js berubah di GitHub
+ *   sehingga static import sudah berisi nilai terbaru setelah deploy
+ * - Tidak ada dependency ke GitHub token / network saat runtime normal
  */
 
+import { CREDENTIALS, SECURITY_CONFIG } from "./authData";
 import { GITHUB_CONFIG } from "./githubSync";
 
-// ─── Session Keys ────────────────────────────────────────────────────────────
+// ─── Session Keys ─────────────────────────────────────────────────────────────
 const SESSION_KEY = "_m_s_v1_secure";
 const INTEGRITY_SALT = "m3m0ir3_2024_auth_layer";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function generateIntegrity(data) {
   return btoa(JSON.stringify(data) + INTEGRITY_SALT)
     .split("")
@@ -21,8 +26,38 @@ function generateIntegrity(data) {
     .join("");
 }
 
-// ─── Live Credentials Fetcher ─────────────────────────────────────────────────
-// Always fetches the latest authData.js from GitHub — never uses stale bundle data.
+// Bersihkan semua legacy cache dari browser storage
+function clearLegacyStorage() {
+  const keys = [
+    "memoire_github_token",
+    "memoire_github_owner",
+    "memoire_github_repo",
+    "memoire_github_branch",
+    "memoire_data",
+    "memoire_credentials",
+    "memoire_auth",
+  ];
+  keys.forEach((k) => {
+    localStorage.removeItem(k);
+    sessionStorage.removeItem(k);
+  });
+}
+clearLegacyStorage();
+
+// ─── Sumber data utama (static — langsung dari file) ─────────────────────────
+// Ini yang dipakai di seluruh app. Setelah Vercel deploy ulang,
+// nilai ini otomatis mengikuti authData.js terbaru.
+export function getStaticCredentials() {
+  return CREDENTIALS;
+}
+
+export function getStaticSecurityConfig() {
+  return SECURITY_CONFIG;
+}
+
+// ─── GitHub fetch (hanya untuk manual refresh / post-save sync) ──────────────
+// Dipanggil HANYA ketika user menekan tombol refresh manual di dashboard,
+// atau setelah Vercel build selesai. Bukan sumber utama.
 export async function fetchLiveAuthData() {
   try {
     const { owner, repo, branch, getToken } = GITHUB_CONFIG;
@@ -40,9 +75,7 @@ export async function fetchLiveAuthData() {
 
     const text = await res.text();
 
-    // Parse CREDENTIALS array
     const credsMatch = text.match(/export const CREDENTIALS\s*=\s*(\[[\s\S]*?\]);/);
-    // Parse SECURITY_CONFIG object
     const secMatch = text.match(/export const SECURITY_CONFIG\s*=\s*(\{[\s\S]*?\});/);
 
     const credentials = credsMatch ? new Function(`return ${credsMatch[1]}`)() : null;
@@ -56,55 +89,47 @@ export async function fetchLiveAuthData() {
 }
 
 // ─── Login ────────────────────────────────────────────────────────────────────
-// Accepts credentials array directly (fetched live by the caller)
+// Menerima credentials array sebagai parameter — caller yang tentukan sumber datanya
 export function loginWithCredentials(username, password, credentials) {
-  const found = credentials?.find(
+  const list = credentials ?? CREDENTIALS;
+  const found = list.find(
     (c) => c.username === username.trim() && c.password === password,
   );
   if (!found) return null;
 
-  const sessionData = {
-    r: found.role,
-    u: found.username,
-    t: Date.now(),
-  };
-
+  const sessionData = { r: found.role, u: found.username, t: Date.now() };
   const payload = {
     d: btoa(JSON.stringify(sessionData)),
     i: generateIntegrity(sessionData),
   };
 
-  // Store ONLY session token — never store credentials/password in browser
   sessionStorage.setItem(SESSION_KEY, btoa(JSON.stringify(payload)));
-
-  // Clear any legacy stale credential caches that may exist
-  _clearLegacyStorage();
-
+  clearLegacyStorage();
   return sessionData;
 }
 
-// ─── Logout ───────────────────────────────────────────────────────────────────
-export function logout() {
-  sessionStorage.removeItem(SESSION_KEY);
-  _clearLegacyStorage();
+// Backward-compat: login langsung pakai CREDENTIALS dari authData
+export function login(username, password) {
+  return loginWithCredentials(username, password, CREDENTIALS);
 }
 
-// ─── Session Reader ───────────────────────────────────────────────────────────
+// ─── Session ──────────────────────────────────────────────────────────────────
+export function logout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  clearLegacyStorage();
+}
+
 export function getSession() {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-
     const payload = JSON.parse(atob(raw));
     const sessionData = JSON.parse(atob(payload.d));
-
-    // Verify integrity
     if (payload.i !== generateIntegrity(sessionData)) {
       console.warn("[auth] Session integrity check failed.");
       logout();
       return null;
     }
-
     return { role: sessionData.r, username: sessionData.u };
   } catch {
     return null;
@@ -126,24 +151,3 @@ export function useAuth() {
     username: session?.username ?? null,
   };
 }
-
-// ─── Legacy Storage Cleanup ───────────────────────────────────────────────────
-// Remove any old credential data accidentally cached in browser storage
-function _clearLegacyStorage() {
-  const staleKeys = [
-    "memoire_github_token",
-    "memoire_github_owner",
-    "memoire_github_repo",
-    "memoire_github_branch",
-    "memoire_data",
-    "memoire_credentials",
-    "memoire_auth",
-  ];
-  staleKeys.forEach((k) => {
-    localStorage.removeItem(k);
-    sessionStorage.removeItem(k);
-  });
-}
-
-// Run cleanup on module load
-_clearLegacyStorage();
