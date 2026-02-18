@@ -13,13 +13,4 @@ export const CREDENTIALS = [
   },
 ];
 
-export function generateAuthJS(creds) {
-  const credsCode = creds
-    .map(
-      (c) =>
-        `  {\n    username: ${JSON.stringify(c.username)},\n    password: ${JSON.stringify(c.password)},\n    role: ${JSON.stringify(c.role)},\n  }`,
-    )
-    .join(",\n");
-
-  return `export const CREDENTIALS = [\n${credsCode}\n];\n`;
-}
+// End of credentials data
