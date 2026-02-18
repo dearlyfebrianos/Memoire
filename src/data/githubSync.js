@@ -111,7 +111,9 @@ async function getFileSHA(token, config) {
 }
 
 export async function pushToGitHub(chapters) {
-  const content = generatePhotosJS(chapters);
+  const jsContent = generatePhotosJS(chapters);
+  const jsonContent = JSON.stringify(chapters, null, 2);
+
   const config = {
     ...GITHUB_CONFIG,
     owner: localStorage.getItem("memoire_github_owner") || GITHUB_CONFIG.owner,
@@ -119,7 +121,18 @@ export async function pushToGitHub(chapters) {
     branch:
       localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
   };
-  return pushFileToGitHub(content, config.filePath, "Update memories");
+
+  // Push JS and JSON in parallel
+  const [jsRes, jsonRes] = await Promise.all([
+    pushFileToGitHub(jsContent, config.filePath, "Update memories (JS)"),
+    pushFileToGitHub(
+      jsonContent,
+      "src/data/photos.json",
+      "Update memories (JSON)",
+    ),
+  ]);
+
+  return jsRes; // Return JS result as primary
 }
 
 export function generateAuthJS(creds) {

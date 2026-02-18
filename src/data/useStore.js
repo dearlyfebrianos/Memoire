@@ -33,6 +33,65 @@ export function useStore() {
     };
   }, []);
 
+  // Poll for updates from GitHub JSON (Live Updates)
+  // Poll for updates from GitHub JSON (Live Updates)
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchUpdates = async () => {
+      try {
+        const owner =
+          localStorage.getItem("memoire_github_owner") || "dearlyfebrianos";
+        const repo = localStorage.getItem("memoire_github_repo") || "memoire";
+        const branch =
+          localStorage.getItem("memoire_github_branch") || "master";
+        const token = localStorage.getItem("memoire_github_token");
+
+        let fetchedData = null;
+
+        if (token) {
+          // Admin Mode: Use API to fetch content securely
+          const res = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/contents/src/data/photos.json?ref=${branch}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/vnd.github.v3.raw",
+              },
+            },
+          );
+          if (res.ok) fetchedData = await res.json();
+        } else {
+          // Public Mode: Use Raw URL (Works if repo is public)
+          const res = await fetch(
+            `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/src/data/photos.json`,
+          );
+          if (res.ok) fetchedData = await res.json();
+        }
+
+        if (isMounted && fetchedData && Array.isArray(fetchedData)) {
+          const normalized = fetchedData.map(normalizeChapter);
+          // Update only if data changed
+          if (JSON.stringify(normalized) !== JSON.stringify(globalChapters)) {
+            console.log("Live update detected, refreshing store...");
+            globalChapters = normalized;
+            notify();
+          }
+        }
+      } catch (e) {
+        // Silent fail
+      }
+    };
+
+    fetchUpdates();
+    const interval = setInterval(fetchUpdates, 15000); // Check every 15s
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   const addChapter = useCallback((chapter) => {
     const newChapter = {
       ...chapter,
