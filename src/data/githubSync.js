@@ -208,7 +208,7 @@ export async function restoreFromBackup(fileType, content) {
   return pushFileToGitHub(content, targetPath, message);
 }
 
-export function generateAuthJS(creds) {
+export function generateAuthJS(creds, securityConfig) {
   const credsCode = creds
     .map(
       (c) =>
@@ -216,15 +216,17 @@ export function generateAuthJS(creds) {
     )
     .join(",\n");
 
-  return `export const CREDENTIALS = [\n${credsCode}\n];\n`;
+  const secCode = `export const SECURITY_CONFIG = ${JSON.stringify(securityConfig, null, 2)};`;
+
+  return `export const CREDENTIALS = [\n${credsCode}\n];\n\n${secCode}\n`;
 }
 
-export async function pushAuthToGitHub(creds) {
-  const content = generateAuthJS(creds);
+export async function pushAuthToGitHub(creds, securityConfig) {
+  const content = generateAuthJS(creds, securityConfig);
   return pushFileToGitHub(
     content,
     "src/data/authData.js",
-    "Update credentials",
+    "Update security & credentials",
   );
 }
 
