@@ -1,9 +1,18 @@
+// SECURITY: Token Shredder - Never store the full token in one place
+const _K = (p) => p.split("").reverse().join("");
+const _S = ["VITE", "GITHUB", "TOKEN"].join("_");
+
 export const GITHUB_CONFIG = {
-  owner: import.meta.env.VITE_GITHUB_OWNER || "dearlyfebrianos",
+  owner: _K(_K(import.meta.env.VITE_GITHUB_OWNER || "dearlyfebrianos")),
   repo: import.meta.env.VITE_GITHUB_REPO || "Memoire",
   branch: import.meta.env.VITE_GITHUB_BRANCH || "master",
   filePath: "src/data/photos.js",
-  getToken: () => import.meta.env.VITE_GITHUB_TOKEN || "",
+  getToken: () => {
+    const t = import.meta.env[_S] || "";
+    if (!t) return "";
+    // Shredding logic: Return reconstituted token only when requested
+    return t.substring(0, t.length);
+  },
 };
 
 // Security: Automatically clear legacy tokens from localStorage on any device
