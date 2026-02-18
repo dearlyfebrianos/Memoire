@@ -838,7 +838,10 @@ export default function AdminDashboard() {
                   <GlassCard className="md:col-span-2 p-10 flex flex-col justify-center">
                     <h2 className="font-display text-4xl mb-6 font-light text-white/90 tracking-tight leading-tight">
                       Welcome back,{" "}
-                      <span className="text-[#e8c4a0]">{auth.username}</span>.
+                      <span className="text-[#e8c4a0]">
+                        {currentUserData?.displayName || auth.username}
+                      </span>
+                      .
                     </h2>
                     <p className="font-body text-base text-white/30 leading-relaxed max-w-xl italic mb-8">
                       "Memory is a way of holding on to the things you love, the
