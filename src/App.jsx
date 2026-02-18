@@ -38,7 +38,7 @@ function RealtimeSync() {
 
   useEffect(() => {
     const owner = "dearlyfebrianos";
-    const repo = "memoire";
+    const repo = "Memoire";
     const branch = "main";
     const path = "src/data/photos.js";
 

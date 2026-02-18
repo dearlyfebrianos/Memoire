@@ -76,6 +76,12 @@ export default function LinkGenerator({ onClose }) {
   const [files, setFiles] = useState([]);
   const [uploadQueue, setUploadQueue] = useState([]);
   const [results, setResults] = useState([]);
+  const [recentHistory, setRecentHistory] = useState(() => {
+    const saved = localStorage.getItem("memoire_recent_links");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showHistory, setShowHistory] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [currentProgress, setCurrentProgress] = useState(0);
@@ -135,7 +141,15 @@ export default function LinkGenerator({ onClose }) {
             f.id === item.id ? { ...f, status: "done", result } : f,
           ),
         );
-        setResults((prev) => [{ ...result, id: item.id }, ...prev]);
+        const newResult = { ...result, id: item.id, timestamp: Date.now() };
+        setResults((prev) => [newResult, ...prev]);
+
+        // Simpan ke history (limit 20 items)
+        setRecentHistory((prev) => {
+          const updated = [newResult, ...prev].slice(0, 20);
+          localStorage.setItem("memoire_recent_links", JSON.stringify(updated));
+          return updated;
+        });
       } catch (e) {
         setFiles((prev) =>
           prev.map((f) =>
@@ -197,6 +211,12 @@ export default function LinkGenerator({ onClose }) {
   const handleRemoveFile = (id) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
     setUploadQueue((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const handleConfirmClear = () => {
+    setRecentHistory([]);
+    localStorage.removeItem("memoire_recent_links");
+    setShowClearConfirm(false);
   };
 
   const handleClearAll = () => {
@@ -289,13 +309,42 @@ export default function LinkGenerator({ onClose }) {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                title="Recent History"
+                style={{
+                  background: showHistory
+                    ? "rgba(56,189,248,0.15)"
+                    : "rgba(255,255,255,0.06)",
+                  border: showHistory
+                    ? "1px solid rgba(56,189,248,0.3)"
+                    : "1px solid rgba(255,255,255,0.1)",
+                  color: showHistory ? "#38bdf8" : "rgba(255,255,255,0.4)",
+                }}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+              <button
                 onClick={() => setShowSetup(!showSetup)}
                 className="w-8 h-8 rounded-full flex items-center justify-center"
                 title="Pengaturan API Key"
                 style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.4)",
+                  background: showSetup
+                    ? "rgba(232,196,160,0.1)"
+                    : "rgba(255,255,255,0.06)",
+                  border: showSetup
+                    ? "1px solid rgba(232,196,160,0.3)"
+                    : "1px solid rgba(255,255,255,0.1)",
+                  color: showSetup ? "#e8c4a0" : "rgba(255,255,255,0.4)",
                 }}
               >
                 <svg
@@ -335,6 +384,135 @@ export default function LinkGenerator({ onClose }) {
 
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto p-6 space-y-5">
+            {/* History Panel */}
+            <AnimatePresence>
+              {showHistory && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-5 rounded-2xl mb-4 bg-sky-400/5 border border-sky-400/10">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-display text-xs tracking-widest uppercase text-sky-400">
+                        Recent Generated Links
+                      </h4>
+                      <button
+                        onClick={() => setShowClearConfirm(true)}
+                        className="font-body text-[10px] text-white/30 hover:text-red-400 transition-colors"
+                      >
+                        Clear History
+                      </button>
+                    </div>
+
+                    {/* Confirmation Overlay for Clear History */}
+                    <AnimatePresence>
+                      {showClearConfirm && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="absolute inset-x-5 top-16 bottom-5 z-20 flex flex-col items-center justify-center p-6 text-center rounded-2xl"
+                          style={{
+                            background: "rgba(10,10,22,0.92)",
+                            backdropFilter: "blur(12px)",
+                            border: "1px solid rgba(239,68,68,0.2)",
+                          }}
+                        >
+                          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#fca5a5"
+                              strokeWidth="2"
+                            >
+                              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </div>
+                          <h5 className="font-display text-sm text-white/90 mb-1">
+                            Hapus Semua History?
+                          </h5>
+                          <p className="font-body text-[10px] text-white/40 mb-6 px-4">
+                            Tindakan ini tidak bisa dibatalkan. Kamu akan
+                            kehilangan semua link yang baru di-generate.
+                          </p>
+                          <div className="flex gap-3 w-full max-w-[200px]">
+                            <button
+                              onClick={() => setShowClearConfirm(false)}
+                              className="flex-1 py-2 rounded-xl font-body text-[10px] text-white/60 hover:bg-white/5 transition-colors"
+                              style={{
+                                border: "1px solid rgba(255,255,255,0.1)",
+                              }}
+                            >
+                              Batal
+                            </button>
+                            <button
+                              onClick={handleConfirmClear}
+                              className="flex-1 py-2 rounded-xl font-body text-[10px] text-white font-bold"
+                              style={{ background: "#ef4444" }}
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {recentHistory.length === 0 ? (
+                      <p className="font-body text-xs text-white/20 py-4 text-center italic">
+                        Belum ada history upload.
+                      </p>
+                    ) : (
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                        {recentHistory.map((h) => (
+                          <div
+                            key={h.id}
+                            className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5"
+                          >
+                            <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-black">
+                              {h.type === "image" ? (
+                                <img
+                                  src={h.directUrl}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-sky-500/10">
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    className="text-sky-400"
+                                  >
+                                    <path d="M8 5v14l11-7z" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-body text-[10px] text-white/50 truncate">
+                                {h.filename}
+                              </p>
+                              <button
+                                onClick={() => handleCopy(h.directUrl, h.id)}
+                                className="font-body text-[9px] text-sky-400 hover:underline"
+                              >
+                                {copiedId === h.id ? "Copied!" : "Copy Link"}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* API Key Setup */}
             <AnimatePresence>
               {showSetup && (
