@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../data/useStore";
 import { CREDENTIALS } from "../../data/authData";
 import { useAuth, logout } from "../../data/auth";
-import { normalizeMediaItems } from "../../data/githubSync";
+import { normalizeMediaItems, GITHUB_CONFIG } from "../../data/githubSync";
 import AddPhotoModal from "./AddPhotoModal";
 import AddChapterModal from "./AddChapterModal";
 import EditPhotoModal from "./EditPhotoModal";
@@ -13,7 +13,7 @@ import GitHubSettings from "./GithubSettings";
 import LinkGenerator from "./LinkGenerator";
 import AdminSidebar from "./AdminSidebar";
 import UserManagement from "./UserManagement";
-import BackupManager from "./BackupManager"; // Import BackupManager
+import BackupManager from "./BackupManager";
 
 const ACCENT = "#e8c4a0";
 
@@ -332,6 +332,19 @@ export default function AdminDashboard() {
   const [showGitHubSettings, setShowGitHubSettings] = useState(false);
   const [showLinkGenerator, setShowLinkGenerator] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [syncNotify, setSyncNotify] = useState(null);
+
+  useEffect(() => {
+    const handleSyncStatus = (e) => {
+      setSyncNotify(e.detail);
+      if (e.detail.status === "success") {
+        setTimeout(() => setSyncNotify(null), 7000);
+      }
+    };
+    window.addEventListener("github-sync-status", handleSyncStatus);
+    return () =>
+      window.removeEventListener("github-sync-status", handleSyncStatus);
+  }, []);
 
   useEffect(() => {
     sessionStorage.setItem("memoire_admin_tab", activeTab);
@@ -954,6 +967,85 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* GitHub Auto-Sync Status Notification */}
+      <AnimatePresence>
+        {syncNotify && (
+          <motion.div
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+            className="fixed bottom-8 right-8 z-[110] flex items-center gap-4 p-5 rounded-3xl bg-[#0a0a16]/95 backdrop-blur-xl border border-white/10 shadow-3xl"
+            style={{
+              borderColor:
+                syncNotify.status === "success"
+                  ? "rgba(74,222,128,0.2)"
+                  : "rgba(239,68,68,0.2)",
+            }}
+          >
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                syncNotify.status === "success"
+                  ? "bg-green-500/10 text-green-400"
+                  : "bg-red-500/10 text-red-400"
+              }`}
+            >
+              {syncNotify.status === "success" ? (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              )}
+            </div>
+            <div className="min-w-[180px]">
+              <h4 className="font-display text-xs uppercase tracking-widest text-white/90">
+                {syncNotify.status === "success"
+                  ? "Live on GitHub"
+                  : "Sync Failed"}
+              </h4>
+              <p className="font-body text-[10px] text-white/30 mt-1">
+                {syncNotify.status === "success"
+                  ? "Successfully published to repository"
+                  : syncNotify.message || "Failed to push updates"}
+              </p>
+            </div>
+            <button
+              onClick={() => setSyncNotify(null)}
+              className="ml-2 w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/5 transition-colors"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeOpacity="0.2"
+                strokeWidth="2"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

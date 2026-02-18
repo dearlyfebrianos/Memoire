@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { pushToGitHub } from "../../data/githubSync";
+import { pushToGitHub, GITHUB_CONFIG } from "../../data/githubSync";
 import { useStore } from "../../data/useStore";
 
 export default function PublishButton({ onOpenSettings }) {
@@ -10,7 +10,7 @@ export default function PublishButton({ onOpenSettings }) {
   const [error, setError] = useState("");
   const [showResult, setShowResult] = useState(false);
 
-  const hasToken = !!localStorage.getItem("memoire_github_token");
+  const hasToken = !!GITHUB_CONFIG.getToken();
 
   const handlePublish = useCallback(async () => {
     if (!hasToken) {
@@ -156,8 +156,7 @@ export default function PublishButton({ onOpenSettings }) {
             </svg>
           ))}
         <span>
-          {status === "idle" &&
-            (hasToken ? "Publish ke GitHub" : "Setup GitHub")}
+          {status === "idle" && "Publish ke GitHub"}
           {status === "loading" && "Mempublish..."}
           {status === "success" && "Berhasil!"}
           {status === "error" && "Gagal"}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { chapters as defaultChapters } from "./photos";
-import { normalizeMediaItems } from "./githubSync";
+import { normalizeMediaItems, GITHUB_CONFIG, pushToGitHub } from "./githubSync";
 
 export function normalizePhoto(photo) {
   return { ...photo, mediaItems: normalizeMediaItems(photo) };
@@ -40,15 +40,13 @@ export function useStore() {
 
     const fetchUpdates = async () => {
       try {
-        const owner =
-          localStorage.getItem("memoire_github_owner") || "dearlyfebrianos";
-        const repo = localStorage.getItem("memoire_github_repo") || "memoire";
-        const branch =
-          localStorage.getItem("memoire_github_branch") || "master";
-        const token = localStorage.getItem("memoire_github_token");
+        // Use GITHUB_CONFIG for owner, repo, branch, and token
+        const owner = GITHUB_CONFIG.owner;
+        const repo = GITHUB_CONFIG.repo;
+        const branch = GITHUB_CONFIG.branch;
+        const token = GITHUB_CONFIG.getToken();
 
         let fetchedData = null;
-
         if (token) {
           // Admin Mode: Use API to fetch content securely
           const res = await fetch(
@@ -92,84 +90,148 @@ export function useStore() {
     };
   }, []);
 
-  const addChapter = useCallback((chapter) => {
-    const newChapter = {
-      ...chapter,
-      id: chapter.slug || chapter.label.toLowerCase().replace(/\s+/g, "-"),
-      hidden: false,
-      photos: [],
-    };
-    globalChapters = [...globalChapters, newChapter];
-    notify();
+  // Wrap automated push logic
+  const autoSync = useCallback(async (currentChapters) => {
+    try {
+      const token = GITHUB_CONFIG.getToken();
+      if (!token) return; // Silent if no token is configured
+
+      // We use a small delay to ensure multiple rapid changes (if any) are caught
+      // but since these are user-triggered modals, single calls are fine.
+      await pushToGitHub(currentChapters);
+
+      // Notify any active UI about the background sync success
+      const event = new CustomEvent("github-sync-status", {
+        detail: { status: "success", timestamp: Date.now() },
+      });
+      window.dispatchEvent(event);
+    } catch (e) {
+      console.error("Auto-sync failed:", e);
+      const event = new CustomEvent("github-sync-status", {
+        detail: { status: "error", message: e.message, timestamp: Date.now() },
+      });
+      window.dispatchEvent(event);
+    }
   }, []);
 
-  const updateChapter = useCallback((id, updates) => {
-    globalChapters = globalChapters.map((c) =>
-      c.id === id ? { ...c, ...updates } : c,
-    );
-    notify();
-  }, []);
+  const addChapter = useCallback(
+    (chapter) => {
+      const newChapter = {
+        ...chapter,
+        id: chapter.slug || chapter.label.toLowerCase().replace(/\s+/g, "-"),
+        hidden: false,
+        photos: [],
+      };
+      const nextChapters = [...globalChapters, newChapter];
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
 
-  const deleteChapter = useCallback((id) => {
-    globalChapters = globalChapters.filter((c) => c.id !== id);
-    notify();
-  }, []);
+  const updateChapter = useCallback(
+    (id, updates) => {
+      const nextChapters = globalChapters.map((c) =>
+        c.id === id ? { ...c, ...updates } : c,
+      );
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
 
-  const toggleChapterHidden = useCallback((id) => {
-    globalChapters = globalChapters.map((c) =>
-      c.id === id ? { ...c, hidden: !c.hidden } : c,
-    );
-    notify();
-  }, []);
+  const deleteChapter = useCallback(
+    (id) => {
+      const nextChapters = globalChapters.filter((c) => c.id !== id);
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
 
-  const addPhoto = useCallback((chapterId, photo) => {
-    const newPhoto = normalizePhoto({
-      ...photo,
-      id: Date.now() + Math.random(),
-      hidden: false,
-    });
-    globalChapters = globalChapters.map((c) =>
-      c.id === chapterId ? { ...c, photos: [...c.photos, newPhoto] } : c,
-    );
-    notify();
-  }, []);
+  const toggleChapterHidden = useCallback(
+    (id) => {
+      const nextChapters = globalChapters.map((c) =>
+        c.id === id ? { ...c, hidden: !c.hidden } : c,
+      );
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
 
-  const updatePhoto = useCallback((chapterId, photoId, updates) => {
-    globalChapters = globalChapters.map((c) =>
-      c.id === chapterId
-        ? {
-            ...c,
-            photos: c.photos.map((p) =>
-              p.id === photoId ? normalizePhoto({ ...p, ...updates }) : p,
-            ),
-          }
-        : c,
-    );
-    notify();
-  }, []);
+  const addPhoto = useCallback(
+    (chapterId, photo) => {
+      const newPhoto = normalizePhoto({
+        ...photo,
+        id: Date.now() + Math.random(),
+        hidden: false,
+      });
+      const nextChapters = globalChapters.map((c) =>
+        c.id === chapterId ? { ...c, photos: [...c.photos, newPhoto] } : c,
+      );
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
 
-  const deletePhoto = useCallback((chapterId, photoId) => {
-    globalChapters = globalChapters.map((c) =>
-      c.id === chapterId
-        ? { ...c, photos: c.photos.filter((p) => p.id !== photoId) }
-        : c,
-    );
-    notify();
-  }, []);
+  const updatePhoto = useCallback(
+    (chapterId, photoId, updates) => {
+      const nextChapters = globalChapters.map((c) =>
+        c.id === chapterId
+          ? {
+              ...c,
+              photos: c.photos.map((p) =>
+                p.id === photoId ? normalizePhoto({ ...p, ...updates }) : p,
+              ),
+            }
+          : c,
+      );
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
 
-  const togglePhotoHidden = useCallback((chapterId, photoId) => {
-    globalChapters = globalChapters.map((c) =>
-      c.id === chapterId
-        ? {
-            ...c,
-            photos: c.photos.map((p) =>
-              p.id === photoId ? { ...p, hidden: !p.hidden } : p,
-            ),
-          }
-        : c,
-    );
-    notify();
-  }, []);
+  const deletePhoto = useCallback(
+    (chapterId, photoId) => {
+      const nextChapters = globalChapters.map((c) =>
+        c.id === chapterId
+          ? { ...c, photos: c.photos.filter((p) => p.id !== photoId) }
+          : c,
+      );
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
+
+  const togglePhotoHidden = useCallback(
+    (chapterId, photoId) => {
+      const nextChapters = globalChapters.map((c) =>
+        c.id === chapterId
+          ? {
+              ...c,
+              photos: c.photos.map((p) =>
+                p.id === photoId ? { ...p, hidden: !p.hidden } : p,
+              ),
+            }
+          : c,
+      );
+      globalChapters = nextChapters;
+      notify();
+      autoSync(nextChapters);
+    },
+    [autoSync],
+  );
 
   const allPhotos = chapters.flatMap((c) =>
     c.photos.map((p) => ({ ...p, chapter: c.id, chapterLabel: c.label })),

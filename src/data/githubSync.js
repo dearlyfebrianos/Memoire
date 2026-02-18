@@ -1,10 +1,26 @@
 export const GITHUB_CONFIG = {
-  owner: "dearlyfebrianos",
-  repo: "memoire",
-  branch: "master",
+  owner: import.meta.env.VITE_GITHUB_OWNER || "dearlyfebrianos",
+  repo: import.meta.env.VITE_GITHUB_REPO || "memoire",
+  branch: import.meta.env.VITE_GITHUB_BRANCH || "master",
   filePath: "src/data/photos.js",
-  getToken: () => localStorage.getItem("memoire_github_token") || "",
+  getToken: () => import.meta.env.VITE_GITHUB_TOKEN || "",
 };
+
+// Security: Automatically clear legacy tokens from localStorage on any device
+if (typeof window !== "undefined") {
+  const legacyKeys = [
+    "memoire_github_token",
+    "memoire_github_owner",
+    "memoire_github_repo",
+    "memoire_github_branch",
+  ];
+  legacyKeys.forEach((key) => {
+    if (localStorage.getItem(key)) {
+      console.warn(`Security: Removing legacy ${key} from localStorage`);
+      localStorage.removeItem(key);
+    }
+  });
+}
 
 // Detect if URL is a video
 export function isVideoUrl(url) {
@@ -93,8 +109,9 @@ export function generatePhotosJS(chapters) {
 
 async function getFileSHA(token, config) {
   const res = await fetch(
-    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.filePath}?ref=${config.branch}`,
+    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.filePath}?ref=${config.branch}&t=${Date.now()}`,
     {
+      cache: "no-store",
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json",
@@ -114,23 +131,20 @@ export async function pushToGitHub(chapters) {
   const jsContent = generatePhotosJS(chapters);
   const jsonContent = JSON.stringify(chapters, null, 2);
 
-  const config = {
-    ...GITHUB_CONFIG,
-    owner: localStorage.getItem("memoire_github_owner") || GITHUB_CONFIG.owner,
-    repo: localStorage.getItem("memoire_github_repo") || GITHUB_CONFIG.repo,
-    branch:
-      localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
-  };
+  const config = { ...GITHUB_CONFIG };
 
-  // Push JS and JSON in parallel
-  const [jsRes, jsonRes] = await Promise.all([
-    pushFileToGitHub(jsContent, config.filePath, "Update memories (JS)"),
-    pushFileToGitHub(
-      jsonContent,
-      "src/data/photos.json",
-      "Update memories (JSON)",
-    ),
-  ]);
+  // Push JS and JSON sequentially to avoid SHA Conflicts
+  const jsRes = await pushFileToGitHub(
+    jsContent,
+    config.filePath,
+    "Update memories (JS)",
+  );
+
+  const jsonRes = await pushFileToGitHub(
+    jsonContent,
+    "src/data/photos.json",
+    "Update memories (JSON)",
+  );
 
   return jsRes; // Return JS result as primary
 }
@@ -198,10 +212,6 @@ export async function pushAuthToGitHub(creds) {
 async function pushFileToGitHub(content, filePath, messagePrefix) {
   const config = {
     ...GITHUB_CONFIG,
-    owner: localStorage.getItem("memoire_github_owner") || GITHUB_CONFIG.owner,
-    repo: localStorage.getItem("memoire_github_repo") || GITHUB_CONFIG.repo,
-    branch:
-      localStorage.getItem("memoire_github_branch") || GITHUB_CONFIG.branch,
     filePath,
   };
   const token = config.getToken();

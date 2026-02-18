@@ -1,67 +1,33 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { verifyToken, GITHUB_CONFIG } from "../../data/githubSync";
+import { GITHUB_CONFIG, verifyToken } from "../../data/githubSync";
 
 export default function GitHubSettings({ onClose }) {
-  const [token, setToken] = useState(
-    localStorage.getItem("memoire_github_token") || "",
-  );
-  const [owner, setOwner] = useState(
-    localStorage.getItem("memoire_github_owner") || "dearlyfebrianos",
-  );
-  const [repo, setRepo] = useState(
-    localStorage.getItem("memoire_github_repo") || GITHUB_CONFIG.repo,
-  );
-  const [branch, setBranch] = useState(
-    localStorage.getItem("memoire_github_branch") || "main",
-  );
-  const [verifying, setVerifying] = useState(false);
-  const [verified, setVerified] = useState(null);
-  const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [testStatus, setTestStatus] = useState("idle"); // idle | testing | success | error
+  const [errorMsg, setErrorMsg] = useState("");
+  const repoUrl = `https://github.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`;
 
-  const handleVerify = async () => {
-    if (!token || !owner || !repo) return;
-    setVerifying(true);
-    setError("");
-    setVerified(null);
-    try {
-      const result = await verifyToken(token, owner, repo);
-      setVerified(result);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setVerifying(false);
-    }
-  };
+  useEffect(() => {
+    const checkConnection = async () => {
+      const token = GITHUB_CONFIG.getToken();
+      if (!token) {
+        setTestStatus("error");
+        setErrorMsg("Token not found in environment variables.");
+        return;
+      }
 
-  const handleSave = () => {
-    localStorage.setItem("memoire_github_token", token);
-    localStorage.setItem("memoire_github_owner", owner);
-    localStorage.setItem("memoire_github_repo", repo);
-    localStorage.setItem("memoire_github_branch", branch);
-    GITHUB_CONFIG.owner = owner;
-    GITHUB_CONFIG.repo = repo;
-    GITHUB_CONFIG.branch = branch;
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      if (verified) onClose();
-    }, 1500);
-  };
+      setTestStatus("testing");
+      try {
+        await verifyToken(token, GITHUB_CONFIG.owner, GITHUB_CONFIG.repo);
+        setTestStatus("success");
+      } catch (e) {
+        setTestStatus("error");
+        setErrorMsg(e.message || "Failed to connect to GitHub");
+      }
+    };
 
-  const inputStyle = {
-    width: "100%",
-    padding: "10px 14px",
-    borderRadius: "12px",
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "rgba(255,255,255,0.9)",
-    fontFamily: "DM Sans, sans-serif",
-    fontSize: "14px",
-    outline: "none",
-    cursor: "text",
-  };
+    checkConnection();
+  }, []);
 
   return (
     <AnimatePresence>
@@ -87,6 +53,7 @@ export default function GitHubSettings({ onClose }) {
           }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Header */}
           <div
             className="flex items-center justify-between p-6 pb-5"
             style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
@@ -113,13 +80,13 @@ export default function GitHubSettings({ onClose }) {
                   className="font-display text-xl"
                   style={{ color: "rgba(255,255,255,0.9)", fontWeight: 300 }}
                 >
-                  GitHub Settings
+                  GitHub Service
                 </h2>
                 <p
                   className="font-body text-xs"
                   style={{ color: "rgba(255,255,255,0.35)" }}
                 >
-                  Konfigurasi auto-push ke repo
+                  Automated sync active
                 </p>
               </div>
             </div>
@@ -145,231 +112,124 @@ export default function GitHubSettings({ onClose }) {
             </button>
           </div>
 
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-6">
             <div
-              className="p-4 rounded-xl"
+              className="p-5 rounded-2xl"
               style={{
-                background: "rgba(232,196,160,0.06)",
-                border: "1px solid rgba(232,196,160,0.15)",
+                background:
+                  testStatus === "success"
+                    ? "rgba(74,222,128,0.06)"
+                    : testStatus === "error"
+                      ? "rgba(239,68,68,0.06)"
+                      : "rgba(255,255,255,0.03)",
+                border:
+                  testStatus === "success"
+                    ? "1px solid rgba(74,222,128,0.15)"
+                    : testStatus === "error"
+                      ? "1px solid rgba(239,68,68,0.15)"
+                      : "1px solid rgba(255,255,255,0.1)",
               }}
             >
+              <div className="flex items-center gap-3 mb-2">
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    testStatus === "success"
+                      ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse"
+                      : testStatus === "error"
+                        ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                        : "bg-amber-500 animate-bounce"
+                  }`}
+                />
+                <h4
+                  className={`font-display text-xs uppercase tracking-widest font-bold ${
+                    testStatus === "success"
+                      ? "text-green-400"
+                      : testStatus === "error"
+                        ? "text-red-400"
+                        : "text-amber-400"
+                  }`}
+                >
+                  {testStatus === "testing"
+                    ? "Verifying Connection..."
+                    : testStatus === "success"
+                      ? "System Connected"
+                      : "Connection Failed"}
+                </h4>
+              </div>
               <p
                 className="font-body text-xs leading-relaxed"
-                style={{ color: "rgba(232,196,160,0.8)" }}
+                style={{ color: "rgba(255,255,255,0.5)" }}
               >
-                <strong>Cara dapat GitHub Token:</strong>
-                <br />
-                GitHub.com → Settings → Developer settings → Personal access
-                tokens → Tokens (classic) → Generate new token → centang{" "}
-                <strong>repo</strong> → Copy token
+                {testStatus === "success"
+                  ? "Repo ini telah dikunci dan dikonfigurasi melalui sistem (.env). Sinkronisasi berjalan dengan aman."
+                  : testStatus === "error"
+                    ? `Terjadi masalah: ${errorMsg}. Pastikan VITE_GITHUB_TOKEN sudah benar di Vercel.`
+                    : "Sedang mencoba menghubungi API GitHub untuk memastikan token Anda masih aktif..."}
               </p>
             </div>
 
-            <div>
-              <label
-                className="block font-body text-xs mb-2 uppercase tracking-widest"
-                style={{ color: "rgba(255,255,255,0.4)" }}
-              >
-                GitHub Username
-              </label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="contoh: dearlyfebriano"
-                value={owner}
-                onChange={(e) => {
-                  setOwner(e.target.value);
-                  setVerified(null);
-                }}
-                onFocus={(e) =>
-                  (e.target.style.borderColor = "rgba(232,196,160,0.4)")
-                }
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "rgba(255,255,255,0.1)")
-                }
-              />
-            </div>
-
-            <div>
-              <label
-                className="block font-body text-xs mb-2 uppercase tracking-widest"
-                style={{ color: "rgba(255,255,255,0.4)" }}
-              >
-                Nama Repo
-              </label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="contoh: memoire"
-                value={repo}
-                onChange={(e) => {
-                  setRepo(e.target.value);
-                  setVerified(null);
-                }}
-                onFocus={(e) =>
-                  (e.target.style.borderColor = "rgba(232,196,160,0.4)")
-                }
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "rgba(255,255,255,0.1)")
-                }
-              />
-            </div>
-
-            <div>
-              <label
-                className="block font-body text-xs mb-2 uppercase tracking-widest"
-                style={{ color: "rgba(255,255,255,0.4)" }}
-              >
-                Branch
-              </label>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="main"
-                value={branch}
-                onChange={(e) => setBranch(e.target.value)}
-                onFocus={(e) =>
-                  (e.target.style.borderColor = "rgba(232,196,160,0.4)")
-                }
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "rgba(255,255,255,0.1)")
-                }
-              />
-            </div>
-
-            <div>
-              <label
-                className="block font-body text-xs mb-2 uppercase tracking-widest"
-                style={{ color: "rgba(255,255,255,0.4)" }}
-              >
-                Personal Access Token
-              </label>
-              <input
-                style={inputStyle}
-                type="password"
-                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                value={token}
-                onChange={(e) => {
-                  setToken(e.target.value);
-                  setVerified(null);
-                }}
-                onFocus={(e) =>
-                  (e.target.style.borderColor = "rgba(232,196,160,0.4)")
-                }
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "rgba(255,255,255,0.1)")
-                }
-              />
-              <p
-                className="font-body text-xs mt-1"
-                style={{ color: "rgba(255,255,255,0.25)" }}
-              >
-                Token disimpan di localStorage browser kamu saja, tidak dikirim
-                ke server manapun.
-              </p>
-            </div>
-
-            {error && (
-              <div
-                className="px-4 py-3 rounded-xl font-body text-xs"
-                style={{
-                  background: "rgba(239,68,68,0.1)",
-                  border: "1px solid rgba(239,68,68,0.25)",
-                  color: "#fca5a5",
-                }}
-              >
-                ⚠ {error}
+            {/* Repo Info Table */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-3 border-b border-white/5">
+                <span className="font-body text-xs text-white/30 uppercase tracking-widest">
+                  Repository
+                </span>
+                <span className="font-body text-xs text-white/80">
+                  {GITHUB_CONFIG.owner}/{GITHUB_CONFIG.repo}
+                </span>
               </div>
-            )}
+              <div className="flex justify-between items-center py-3 border-b border-white/5">
+                <span className="font-body text-xs text-white/30 uppercase tracking-widest">
+                  Branch
+                </span>
+                <span className="font-body text-xs text-white/80">
+                  {GITHUB_CONFIG.branch}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-white/5">
+                <span className="font-body text-xs text-white/30 uppercase tracking-widest">
+                  Sync Mode
+                </span>
+                <span className="font-body text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-white/40 uppercase">
+                  Webhook / Auto-Push
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="font-body text-xs text-white/30 uppercase tracking-widest">
+                  Connectivity
+                </span>
+                <span className="font-body text-xs text-green-400">
+                  Encrypted & Secure
+                </span>
+              </div>
+            </div>
 
-            {verified && (
-              <div
-                className="px-4 py-3 rounded-xl font-body text-xs flex items-center gap-2"
-                style={{
-                  background: "rgba(74,222,128,0.08)",
-                  border: "1px solid rgba(74,222,128,0.25)",
-                  color: "#4ade80",
-                }}
+            <div className="pt-2">
+              <a
+                href={repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white/60 font-display text-[10px] uppercase tracking-widest font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
               >
+                Visit GitHub Repository
                 <svg
-                  width="14"
-                  height="14"
+                  width="12"
+                  height="12"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2.5"
+                  strokeWidth="2"
                 >
-                  <polyline points="20 6 9 17 4 12" />
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
                 </svg>
-                Terverifikasi: <strong>{verified.repoName}</strong>{" "}
-                {verified.private ? "🔒 Private" : "🌐 Public"} · Branch
-                default: {verified.defaultBranch}
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={handleVerify}
-                disabled={!token || !owner || !repo || verifying}
-                className="flex-1 py-3 rounded-xl font-body text-sm flex items-center justify-center gap-2 transition-all"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.5)",
-                  cursor: !token || !owner || !repo ? "not-allowed" : "pointer",
-                }}
-              >
-                {verifying ? (
-                  <>
-                    <svg
-                      className="animate-spin"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M21 12a9 9 0 11-6.219-8.56" />
-                    </svg>
-                    Memverifikasi...
-                  </>
-                ) : (
-                  "Verifikasi Koneksi"
-                )}
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!token || !owner || !repo}
-                className="flex-1 py-3 rounded-xl font-body text-sm flex items-center justify-center gap-2 transition-all"
-                style={{
-                  background: saved
-                    ? "rgba(74,222,128,0.12)"
-                    : "rgba(232,196,160,0.12)",
-                  border: `1px solid ${saved ? "rgba(74,222,128,0.3)" : "rgba(232,196,160,0.3)"}`,
-                  color: saved ? "#4ade80" : "#e8c4a0",
-                  cursor: !token ? "not-allowed" : "pointer",
-                }}
-              >
-                {saved ? (
-                  <>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Tersimpan!
-                  </>
-                ) : (
-                  "Simpan Config"
-                )}
-              </button>
+              </a>
             </div>
+
+            <p className="text-center font-body text-[9px] text-white/10 uppercase tracking-tighter">
+              Admin configuration locked by system owner
+            </p>
           </div>
         </motion.div>
       </motion.div>
