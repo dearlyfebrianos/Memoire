@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CREDENTIALS, generateAuthJS } from "../../data/auth";
 import { pushAuthToGitHub } from "../../data/githubSync";
-import { GlassCard } from "./AdminDashboard"; // Export GlassCard or redefine
 
 export default function UserManagement({ currentUser, isOwner }) {
   const [users, setUsers] = useState(CREDENTIALS);
