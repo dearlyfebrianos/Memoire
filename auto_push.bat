@@ -15,7 +15,7 @@ echo Committing...
 git commit -m "Memoire - Personal Memories"
 
 echo Pushing to master with FORCE...
-git push -u origin master --force
+git push -u origin master
 
 echo.
 echo DONE!
