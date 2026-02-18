@@ -57,38 +57,79 @@ export default function BackupManager({ chapters, credentials }) {
     const file = e.target.files[0];
     if (!file) return;
 
+    // 1. Strict Filename Validation
+    const validNames =
+      type === "photos"
+        ? ["photos.js", "photos_backup.js"]
+        : ["authData.js", "authData_backup.js"];
+
+    if (!validNames.includes(file.name)) {
+      setStatus("error");
+      setMsg(`Salah file bro! Harusnya: ${validNames.join(" atau ")}`);
+      e.target.value = null;
+      return;
+    }
+
     setStatus("restoring");
     const reader = new FileReader();
 
     reader.onload = async (event) => {
       const content = event.target.result;
 
-      // Basic Validation (Check if it looks like the right file)
-      if (type === "photos" && !content.includes("export const chapters")) {
-        setStatus("error");
-        setMsg("Invalid photos.js file format!");
-        return;
-      }
-      if (type === "auth" && !content.includes("export const CREDENTIALS")) {
-        setStatus("error");
-        setMsg("Invalid authData.js file format!");
-        return;
-      }
-
+      // 2. Advanced Logic & Security Validation
       try {
-        // Push/Restore to Live Path
+        // Security Check: Prevent dangerous patterns
+        if (
+          content.includes("eval(") ||
+          content.includes("document.cookie") ||
+          content.includes("localStorage.clear")
+        ) {
+          throw new Error("Security Alert: Suspicious code detected!");
+        }
+
+        if (type === "photos") {
+          // Must define the chapters export
+          if (!content.trim().startsWith("export const chapters = [")) {
+            throw new Error(
+              "Format Invalid: File harus diawali 'export const chapters = ['",
+            );
+          }
+          // Deep structure check (Heuristic)
+          const requiredKeys = ["id:", "slug:", "label:", "photos: ["];
+          const missingKey = requiredKeys.find((key) => !content.includes(key));
+          if (missingKey) {
+            throw new Error(
+              `Corrupt Data: Properti wajib '${missingKey.replace(":", "")}' hilang.`,
+            );
+          }
+        }
+
+        if (type === "auth") {
+          // Must define the credentials export
+          if (
+            !content.includes("export const CREDENTIALS = [") &&
+            !content.includes("import { CREDENTIALS }") // Handle internal switch case if needed, but usually it's array
+          ) {
+            // Check strictly for the array definition as per backup format
+            if (!content.includes("username:") || !content.includes("role:")) {
+              throw new Error(
+                "Invalid structure: Missing username/role fields",
+              );
+            }
+          }
+        }
+
+        // 3. Push/Restore to Live Path
         await restoreFromBackup(type, content);
 
         setStatus("success");
-        setMsg(
-          `Successfully restored ${type === "photos" ? "photos.js" : "authData.js"}! Refreshing...`,
-        );
+        setMsg(`Restored ${file.name} successfully! Refreshing...`);
 
         // Auto-refresh after delay to load new data
         setTimeout(() => window.location.reload(), 3000);
       } catch (err) {
         setStatus("error");
-        setMsg("Restore failed: " + err.message);
+        setMsg("Validation Error: " + err.message);
       }
     };
 
