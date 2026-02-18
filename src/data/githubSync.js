@@ -10,7 +10,6 @@ export const GITHUB_CONFIG = {
   getToken: () => {
     const t = import.meta.env[_S] || "";
     if (!t) return "";
-    // Shredding logic: Return reconstituted token only when requested
     return t.substring(0, t.length);
   },
 };
@@ -35,14 +34,10 @@ if (typeof window !== "undefined") {
 export function isVideoUrl(url) {
   if (!url) return false;
   const lower = url.toLowerCase();
-  // Direct video file extensions
   if (/\.(mp4|webm|ogg|mov|avi|mkv)(\?.*)?$/.test(lower)) return true;
-  // YouTube
   if (lower.includes("youtube.com/watch") || lower.includes("youtu.be/"))
     return true;
-  // YouTube embed
   if (lower.includes("youtube.com/embed/")) return true;
-  // Google Drive video
   if (lower.includes("drive.google.com")) return true;
   return false;
 }
@@ -51,10 +46,8 @@ export function getMediaType(url) {
   return isVideoUrl(url) ? "video" : "image";
 }
 
-// Convert old imageUrls array to new mediaItems format
 export function normalizeMediaItems(item) {
   if (item.mediaItems?.length) return item.mediaItems;
-  // backward compat: old imageUrls
   if (item.imageUrls?.length) {
     return item.imageUrls.map((url) => ({ type: getMediaType(url), url }));
   }
@@ -70,20 +63,16 @@ export function generatePhotosJS(chapters) {
       const photosCode = chapter.photos
         .map((photo) => {
           const mediaItems = normalizeMediaItems(photo);
-
           const mediaItemsCode = mediaItems
             .map(
               (m) =>
                 `          { type: "${m.type}", url: ${JSON.stringify(m.url)} }`,
             )
             .join(",\n");
-
           const tags = photo.tags?.length
             ? `[${photo.tags.map((t) => `"${t}"`).join(", ")}]`
             : "[]";
-
           const isHidden = photo.hidden === true;
-
           return `      {
         id: ${typeof photo.id === "number" ? photo.id : `"${photo.id}"`},
         title: ${JSON.stringify(photo.title)},
@@ -95,9 +84,7 @@ export function generatePhotosJS(chapters) {
       }`;
         })
         .join(",\n");
-
       const chapterHidden = chapter.hidden === true;
-
       return `  {
     id: ${JSON.stringify(chapter.id)},
     label: ${JSON.stringify(chapter.label)},
@@ -139,19 +126,12 @@ async function getFileSHA(token, config) {
 export async function pushToGitHub(chapters) {
   const jsContent = generatePhotosJS(chapters);
   const jsonContent = JSON.stringify(chapters, null, 2);
-
   const config = { ...GITHUB_CONFIG };
-
-  // 1. Push JS (Primary)
   const jsRes = await pushFileToGitHub(
     jsContent,
     config.filePath,
     "Update memories (JS)",
   );
-
-  // 2. Push JSON (Secondary/Live update source)
-  // We wrap this in try-catch so if it fails due to SHA latency,
-  // the main operation is still considered a success (since JS is updated).
   try {
     await pushFileToGitHub(
       jsonContent,
@@ -164,11 +144,8 @@ export async function pushToGitHub(chapters) {
       e.message,
     );
   }
-
-  return jsRes; // Always return JS result as the source of truth for UI
+  return jsRes;
 }
-
-// === BACKUP & RESTORE ===
 
 function getTimestamp() {
   const now = new Date();
@@ -178,11 +155,8 @@ function getTimestamp() {
 export async function pushBackupToGitHub(chapters, credentials) {
   const timestamp = getTimestamp();
   const folder = `backups/${timestamp}`;
-
   const photosContent = generatePhotosJS(chapters);
   const authContent = generateAuthJS(credentials);
-
-  // Push both files to backup folder
   await Promise.all([
     pushFileToGitHub(
       photosContent,
@@ -195,16 +169,13 @@ export async function pushBackupToGitHub(chapters, credentials) {
       `Backup authData.js [${timestamp}]`,
     ),
   ]);
-
   return folder;
 }
 
 export async function restoreFromBackup(fileType, content) {
-  // fileType: 'photos' | 'auth'
   const targetPath =
     fileType === "photos" ? "src/data/photos.js" : "src/data/authData.js";
   const message = `Restore ${fileType === "photos" ? "photos.js" : "authData.js"} from backup`;
-
   return pushFileToGitHub(content, targetPath, message);
 }
 
@@ -216,7 +187,14 @@ export function generateAuthJS(creds, securityConfig) {
     )
     .join(",\n");
 
-  const secCode = `export const SECURITY_CONFIG = ${JSON.stringify(securityConfig, null, 2)};`;
+  // Build SECURITY_CONFIG manually so keys don't get quoted by JSON.stringify
+  let secCode = "";
+  if (securityConfig) {
+    const entries = Object.entries(securityConfig)
+      .map(([key, val]) => `  ${key}: ${JSON.stringify(val)}`)
+      .join(",\n");
+    secCode = `export const SECURITY_CONFIG = {\n${entries}\n};`;
+  }
 
   return `export const CREDENTIALS = [\n${credsCode}\n];\n\n${secCode}\n`;
 }
@@ -231,10 +209,7 @@ export async function pushAuthToGitHub(creds, securityConfig) {
 }
 
 async function pushFileToGitHub(content, filePath, messagePrefix) {
-  const config = {
-    ...GITHUB_CONFIG,
-    filePath,
-  };
+  const config = { ...GITHUB_CONFIG, filePath };
   const token = config.getToken();
   if (!token) throw new Error("GitHub token belum diset.");
 
@@ -267,7 +242,7 @@ async function pushFileToGitHub(content, filePath, messagePrefix) {
   return {
     success: true,
     commitUrl: result.commit?.html_url,
-    commitSha: result.commit?.sha, // Full SHA for reliable build tracking
+    commitSha: result.commit?.sha,
   };
 }
 
