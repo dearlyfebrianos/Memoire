@@ -57,5 +57,17 @@
         "hidden": true
       }
     ]
+  },
+  {
+    "label": "test",
+    "slug": "test",
+    "years": "",
+    "description": "",
+    "emoji": "📸",
+    "accentColor": "#e8c4a0",
+    "coverGradient": "from-slate-900/40 to-gray-900/30",
+    "id": "test",
+    "hidden": false,
+    "photos": []
   }
 ]
