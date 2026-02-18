@@ -172,7 +172,7 @@ export default function PublishButton({ onOpenSettings }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.25 }}
-            className="absolute right-0 top-12 w-80 p-4 rounded-2xl z-50"
+            className="fixed inset-x-4 top-20 sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:w-80 p-4 rounded-2xl z-50"
             style={{
               background: "rgba(10,10,22,0.98)",
               backdropFilter: "blur(20px)",

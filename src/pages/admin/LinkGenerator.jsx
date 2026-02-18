@@ -13,7 +13,7 @@ function getCloudinaryPreset() {
   return localStorage.getItem(CLOUDINARY_PRESET) || "ml_default";
 }
 
-function uploadToCloudinary(file, cloudName, uploadPreset, onProgress) {
+function uploadToCloudinary(file, cloudName, uploadPreset, onProgress, xhrRef) {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -24,6 +24,8 @@ function uploadToCloudinary(file, cloudName, uploadPreset, onProgress) {
     const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
 
     const xhr = new XMLHttpRequest();
+    if (xhrRef) xhrRef.current = xhr;
+
     xhr.open("POST", url, true);
 
     xhr.upload.onprogress = (e) => {
@@ -57,6 +59,7 @@ function uploadToCloudinary(file, cloudName, uploadPreset, onProgress) {
     };
 
     xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.onabort = () => reject(new Error("Upload dibatalkan."));
     xhr.send(formData);
   });
 }
@@ -87,6 +90,15 @@ export default function LinkGenerator({ onClose }) {
   const [currentProgress, setCurrentProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const xhrRef = useRef(null);
+
+  const handleAbort = () => {
+    if (xhrRef.current) {
+      xhrRef.current.abort();
+      setIsUploading(false);
+      setUploadQueue([]);
+    }
+  };
 
   const handleSaveKeys = () => {
     localStorage.setItem(CLOUDINARY_CLOUD_NAME, cloudName.trim());
@@ -134,6 +146,7 @@ export default function LinkGenerator({ onClose }) {
           getCloudinaryName(),
           getCloudinaryPreset(),
           (p) => setCurrentProgress(p),
+          xhrRef,
         );
 
         setFiles((prev) =>
@@ -250,7 +263,7 @@ export default function LinkGenerator({ onClose }) {
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }}
-        onClick={onClose}
+        onClick={() => !isUploading && onClose()}
       >
         <motion.div
           initial={{ scale: 0.93, opacity: 0, y: 20 }}
@@ -861,6 +874,17 @@ export default function LinkGenerator({ onClose }) {
                     className="h-full bg-gradient-to-r from-sky-400 to-blue-500"
                   />
                 </div>
+
+                {/* Cancel Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleAbort}
+                  className="mt-4 px-6 py-2 rounded-xl font-body text-xs border border-white/10 hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+                  style={{ color: "rgba(255,255,255,0.4)" }}
+                >
+                  Batal Upload
+                </motion.button>
               </div>
             </motion.div>
           )}
