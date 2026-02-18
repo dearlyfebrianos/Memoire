@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CREDENTIALS, generateAuthJS } from "../../data/auth";
 import { pushAuthToGitHub } from "../../data/githubSync";
 
-export default function UserManagement({ currentUser, isOwner }) {
-  const [users, setUsers] = useState(CREDENTIALS);
+export default function UserManagement({
+  currentUser,
+  isOwner,
+  initialCredentials,
+  authGenerator,
+}) {
+  const [users, setUsers] = useState(initialCredentials);
   const [status, setStatus] = useState("idle"); // idle | saving | success | error
   const [error, setError] = useState("");
 
@@ -17,7 +21,7 @@ export default function UserManagement({ currentUser, isOwner }) {
           : u,
       );
 
-      await pushAuthToGitHub(updatedUsers, generateAuthJS);
+      await pushAuthToGitHub(updatedUsers, authGenerator);
       setUsers(updatedUsers);
       setStatus("success");
       setTimeout(() => setStatus("idle"), 5000);

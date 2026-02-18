@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../data/useStore";
-import { useAuth, logout } from "../../data/auth";
+import { CREDENTIALS, generateAuthJS, useAuth, logout } from "../../data/auth";
 import { normalizeMediaItems } from "../../data/githubSync";
 import AddPhotoModal from "./AddPhotoModal";
 import AddChapterModal from "./AddChapterModal";
@@ -588,6 +588,8 @@ export default function AdminDashboard() {
                 <UserManagement
                   currentUser={auth.username}
                   isOwner={isOwnerRole}
+                  initialCredentials={CREDENTIALS}
+                  authGenerator={generateAuthJS}
                 />
               </motion.div>
             ) : activeTab === "overview" ? (
