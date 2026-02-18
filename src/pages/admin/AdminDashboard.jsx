@@ -308,7 +308,8 @@ export default function AdminDashboard() {
   const auth = useAuth();
   const isOwnerRole = auth.isOwner;
 
-  const currentUserData = CREDENTIALS.find((u) => u.username === auth.username);
+  const [credentials, setCredentials] = useState(CREDENTIALS);
+  const currentUserData = credentials.find((u) => u.username === auth.username);
 
   const {
     chapters: allChapters,
@@ -787,7 +788,7 @@ export default function AdminDashboard() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="h-full overflow-y-auto px-8 py-10 custom-scrollbar"
               >
-                <BackupManager chapters={chapters} credentials={CREDENTIALS} />
+                <BackupManager chapters={chapters} credentials={credentials} />
               </motion.div>
             ) : activeTab === "user" ? (
               <motion.div
@@ -800,8 +801,8 @@ export default function AdminDashboard() {
                 <UserManagement
                   currentUser={auth.username}
                   isOwner={isOwnerRole}
-                  initialCredentials={CREDENTIALS}
-                  authGenerator={null} // Deprecated, removed internal usage
+                  initialCredentials={credentials}
+                  onUpdate={setCredentials}
                 />
               </motion.div>
             ) : activeTab === "overview" ? (

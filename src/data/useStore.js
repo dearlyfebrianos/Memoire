@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { chapters as defaultChapters } from "./photos";
 import { normalizeMediaItems, GITHUB_CONFIG, pushToGitHub } from "./githubSync";
 
@@ -22,71 +22,103 @@ function notify() {
   listeners.forEach((fn) => fn([...globalChapters]));
 }
 
+// Single polling instance to prevent multiple intervals
+let isPollingStarted = false;
+let jsonMissingGlobal = false;
+
+function startPolling() {
+  if (isPollingStarted) return;
+  isPollingStarted = true;
+
+  const fetchUpdates = async () => {
+    try {
+      const { owner, repo, branch, getToken, filePath } = GITHUB_CONFIG;
+      const token = getToken();
+      let fetchedData = null;
+
+      // Try JSON first (only if not already failing with 404)
+      const jsonPath = "src/data/photos.json";
+      if (!jsonMissingGlobal) {
+        // Check if JSON exists via Commits API first (to avoid console 404)
+        const checkRes = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/commits?path=${jsonPath}&sha=${branch}&per_page=1`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+        );
+        const commits = checkRes.ok ? await checkRes.json() : [];
+        const exists = Array.isArray(commits) && commits.length > 0;
+
+        if (exists) {
+          const res = await fetch(
+            token
+              ? `https://api.github.com/repos/${owner}/${repo}/contents/${jsonPath}?ref=${branch}`
+              : `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${jsonPath}`,
+            {
+              headers: token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/vnd.github.v3.raw",
+                  }
+                : {},
+            },
+          );
+
+          if (res.ok) {
+            fetchedData = await res.json();
+          }
+        } else {
+          jsonMissingGlobal = true; // Avoid re-checking if we know it's not there
+        }
+      }
+
+      // If JSON failed/missing or we know it's missing, try parsing the JS file
+      if (!fetchedData) {
+        const jsRes = await fetch(
+          token
+            ? `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`
+            : `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`,
+          {
+            headers: token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                  Accept: "application/vnd.github.v3.raw",
+                }
+              : {},
+          },
+        );
+        if (jsRes.ok) {
+          const text = await jsRes.text();
+          const match = text.match(/export const chapters = (\[[\s\S]*?\]);/);
+          if (match) {
+            fetchedData = new Function(`return ${match[1]}`)();
+          }
+        }
+      }
+
+      if (fetchedData && Array.isArray(fetchedData)) {
+        const normalized = fetchedData.map(normalizeChapter);
+        if (JSON.stringify(normalized) !== JSON.stringify(globalChapters)) {
+          globalChapters = normalized;
+          notify();
+        }
+      }
+    } catch (e) {
+      // Silent fail
+    }
+  };
+
+  fetchUpdates();
+  setInterval(fetchUpdates, 30000);
+}
+
 export function useStore() {
   const [chapters, setChapters] = useState(globalChapters);
 
   useEffect(() => {
     const handler = (data) => setChapters(data);
     listeners.push(handler);
+    startPolling(); // Ensure polling is active
     return () => {
       listeners = listeners.filter((l) => l !== handler);
-    };
-  }, []);
-
-  // Poll for updates from GitHub JSON (Live Updates)
-  // Poll for updates from GitHub JSON (Live Updates)
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchUpdates = async () => {
-      try {
-        // Use GITHUB_CONFIG for owner, repo, branch, and token
-        const owner = GITHUB_CONFIG.owner;
-        const repo = GITHUB_CONFIG.repo;
-        const branch = GITHUB_CONFIG.branch;
-        const token = GITHUB_CONFIG.getToken();
-
-        let fetchedData = null;
-        if (token) {
-          // Admin Mode: Use API to fetch content securely
-          const res = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/contents/src/data/photos.json?ref=${branch}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/vnd.github.v3.raw",
-              },
-            },
-          );
-          if (res.ok) fetchedData = await res.json();
-        } else {
-          // Public Mode: Use Raw URL (Works if repo is public)
-          const res = await fetch(
-            `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/src/data/photos.json`,
-          );
-          if (res.ok) fetchedData = await res.json();
-        }
-
-        if (isMounted && fetchedData && Array.isArray(fetchedData)) {
-          const normalized = fetchedData.map(normalizeChapter);
-          // Update only if data changed
-          if (JSON.stringify(normalized) !== JSON.stringify(globalChapters)) {
-            console.log("Live update detected, refreshing store...");
-            globalChapters = normalized;
-            notify();
-          }
-        }
-      } catch (e) {
-        // Silent fail
-      }
-    };
-
-    fetchUpdates();
-    const interval = setInterval(fetchUpdates, 15000); // Check every 15s
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
     };
   }, []);
 

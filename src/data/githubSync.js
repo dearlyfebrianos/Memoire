@@ -1,6 +1,6 @@
 export const GITHUB_CONFIG = {
   owner: import.meta.env.VITE_GITHUB_OWNER || "dearlyfebrianos",
-  repo: import.meta.env.VITE_GITHUB_REPO || "memoire",
+  repo: import.meta.env.VITE_GITHUB_REPO || "Memoire",
   branch: import.meta.env.VITE_GITHUB_BRANCH || "master",
   filePath: "src/data/photos.js",
   getToken: () => import.meta.env.VITE_GITHUB_TOKEN || "",

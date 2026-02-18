@@ -6,10 +6,15 @@ export default function UserManagement({
   currentUser,
   isOwner,
   initialCredentials,
+  onUpdate,
 }) {
   // Always keep local state in sync with props/server
   const [users, setUsers] = useState(initialCredentials);
   const [selectedUsername, setSelectedUsername] = useState(currentUser);
+
+  useEffect(() => {
+    setUsers(initialCredentials);
+  }, [initialCredentials]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
 
@@ -42,6 +47,7 @@ export default function UserManagement({
 
       await pushAuthToGitHub(updatedUsers);
       setUsers(updatedUsers);
+      if (onUpdate) onUpdate(updatedUsers);
 
       // If username changed, update selection
       if (username === selectedUsername) {
