@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import LoadingSplash from "./components/LoadingSplash";
 import { useStore } from "./data/useStore";
 import { GITHUB_CONFIG } from "./data/githubSync";
+import { SECURITY_CONFIG } from "./data/authData";
 import {
   BrowserRouter,
   Routes,
@@ -46,7 +47,6 @@ function RealtimeSync() {
         const headers = { Accept: "application/vnd.github+json" };
         if (token) headers.Authorization = `Bearer ${token}`;
 
-        // 1. Get latest commit SHA for the branch to detect ANY change (code or data)
         const res = await fetch(
           `https://api.github.com/repos/${owner}/${repo}/commits/${branch}`,
           { headers },
@@ -60,9 +60,7 @@ function RealtimeSync() {
           return;
         }
 
-        // 2. If SHA changed, something is new!
         if (currentSha !== initialSha) {
-          // Check if the change was specifically in photos.js
           const fileRes = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/commits?path=${filePath}&sha=${branch}&per_page=1`,
             { headers },
@@ -72,15 +70,10 @@ function RealtimeSync() {
             const fileCommits = await fileRes.json();
             const latestFileSha = fileCommits[0]?.sha;
 
-            // If the latest commit on the branch IS the same as the latest commit on the data file,
-            // then it's a DATA update. We sync it silently.
             if (currentSha === latestFileSha) {
-              // Fetch content (Try JSON first if not known to be missing)
               let fetchedData = null;
               if (!jsonMissing) {
                 const jsonPath = "src/data/photos.json";
-
-                // Check existence via commits first to avoid console 404
                 const checkRes = await fetch(
                   `https://api.github.com/repos/${owner}/${repo}/commits?path=${jsonPath}&sha=${branch}&per_page=1`,
                   { headers },
@@ -102,15 +95,12 @@ function RealtimeSync() {
                         : {},
                     },
                   );
-                  if (r.ok) {
-                    fetchedData = await r.json();
-                  }
+                  if (r.ok) fetchedData = await r.json();
                 } else {
                   setJsonMissing(true);
                 }
               }
 
-              // Fallback to JS if JSON failed or is missing
               if (!fetchedData) {
                 const r = await fetch(
                   token
@@ -133,12 +123,10 @@ function RealtimeSync() {
 
               if (fetchedData && Array.isArray(fetchedData)) {
                 setChaptersDirect(fetchedData);
-                setInitialSha(currentSha); // Data is now synchronized
+                setInitialSha(currentSha);
                 return;
               }
             } else {
-              // If currentSha != latestFileSha, it means the update was NOT just data (it was CODE)
-              // We need to reload the page to get the new Vercel deployment
               console.log("New code deployment detected. Reloading...");
               window.location.reload();
             }
@@ -149,9 +137,8 @@ function RealtimeSync() {
       }
     };
 
-    const interval = setInterval(checkUpdates, 60000); // Check every minute
+    const interval = setInterval(checkUpdates, 60000);
     checkUpdates();
-
     return () => clearInterval(interval);
   }, [initialSha, setChaptersDirect, jsonMissing]);
 
@@ -164,9 +151,7 @@ function AppContent() {
 
   useEffect(() => {
     localStorage.removeItem("memoire_data");
-
     const handlePageLoad = () => setIsLoading(false);
-
     if (document.readyState === "complete") {
       setIsLoading(false);
     } else {
@@ -191,7 +176,6 @@ function AppContent() {
           {!isAdminRoute && <Navbar />}
           <main>
             <Routes>
-              {/* Admin Routes */}
               <Route path="/admin" element={<AdminLogin />} />
               <Route
                 path="/admin/dashboard"
@@ -201,7 +185,6 @@ function AppContent() {
                   </AdminGuard>
                 }
               />
-
               <Route path="/" element={<Home />} />
               <Route path="/gallery" element={<GalleryPage />} />
               <Route path="/chapter/:slug" element={<ChapterPage />} />
@@ -217,11 +200,15 @@ function AppContent() {
   );
 }
 
-// SECURITY: Nuclear Lock System - The "Emergency Brake"
+// SECURITY: Nuclear Lock System
 const SEC_KEY = "_m_sys_integrity_v2";
 const SEC_VAL = "BAN_VOX_99";
 const DEV_KEY = "_m_dev_mode_active";
-const MASTER_HASH = "ZGVhcmx5ZmVicmlhbm8wOA=="; // dearlyfebriano08 in base64
+
+// Dynamically derive master hash from authData.js at runtime
+// When owner changes lockdownCode via dashboard → pushes new authData.js →
+// Vercel rebuilds → this line picks up the new value automatically.
+const MASTER_HASH = btoa(SECURITY_CONFIG.lockdownCode);
 
 function NuclearLock({ onUnlock }) {
   const [input, setInput] = useState("");
@@ -231,7 +218,7 @@ function NuclearLock({ onUnlock }) {
     if (btoa(input) === MASTER_HASH) {
       localStorage.removeItem(SEC_KEY);
       sessionStorage.removeItem(SEC_KEY);
-      sessionStorage.setItem(DEV_KEY, "true"); // Enable Developer Mode
+      sessionStorage.setItem(DEV_KEY, "true");
       onUnlock();
     } else {
       setError(true);
@@ -263,8 +250,9 @@ function NuclearLock({ onUnlock }) {
       </h1>
       <p className="font-body text-xs text-white/30 mb-10 max-w-xs leading-relaxed">
         Unauthorized activity detected. This website has been locked to protect
-        data integrity. Please enter the **Owner Verification Code** to resume
-        access.
+        data integrity. Please enter the{" "}
+        <strong className="text-white/50">Owner Verification Code</strong> to
+        resume access.
       </p>
 
       <div className="w-full max-w-sm space-y-4">
@@ -276,7 +264,9 @@ function NuclearLock({ onUnlock }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleVerify()}
-            className={`w-full bg-white/[0.03] border ${error ? "border-red-500/50" : "border-white/10"} rounded-2xl px-6 py-5 text-center font-display tracking-[0.5em] text-white focus:outline-none focus:border-[#e8c4a0]/50 transition-all`}
+            className={`w-full bg-white/[0.03] border ${
+              error ? "border-red-500/50" : "border-white/10"
+            } rounded-2xl px-6 py-5 text-center font-display tracking-[0.5em] text-white focus:outline-none focus:border-[#e8c4a0]/50 transition-all`}
             placeholder="••••••••••••"
             autoFocus
           />
@@ -301,7 +291,6 @@ function NuclearLock({ onUnlock }) {
   );
 }
 
-// Premium Security Guard - Deter hackers and curious users
 function SecurityGuard({ children }) {
   const [isLocked, setIsLocked] = useState(() => {
     return (
@@ -313,21 +302,17 @@ function SecurityGuard({ children }) {
   const isDevMode = sessionStorage.getItem(DEV_KEY) === "true";
 
   const triggerLock = useCallback(() => {
-    if (isDevMode) return; // Never lock the developer
+    if (isDevMode) return;
     localStorage.setItem(SEC_KEY, SEC_VAL);
     sessionStorage.setItem(SEC_KEY, SEC_VAL);
     setIsLocked(true);
   }, [isDevMode]);
 
   useEffect(() => {
-    if (isLocked || isDevMode) return; // Skip all security if locked or in Dev Mode
+    if (isLocked || isDevMode) return;
 
-    // 1. Disable Right Click
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-    };
+    const handleContextMenu = (e) => e.preventDefault();
 
-    // 2. Disable Key Shortcuts
     const handleKeyDown = (e) => {
       if (
         e.key === "F12" ||
@@ -337,12 +322,11 @@ function SecurityGuard({ children }) {
         (e.ctrlKey && e.key === "U")
       ) {
         e.preventDefault();
-        triggerLock(); // SLAM! Kunci website jika coba shortcut inspect
+        triggerLock();
         return false;
       }
     };
 
-    // 3. Stealth DevTools Detection
     const detectDevTools = () => {
       const threshold = 160;
       if (
@@ -353,7 +337,6 @@ function SecurityGuard({ children }) {
       }
     };
 
-    // 4. Crazy Debugger Loop
     const trap = setInterval(() => {
       const start = performance.now();
       debugger;
@@ -362,7 +345,6 @@ function SecurityGuard({ children }) {
       }
     }, 500);
 
-    // 5. DOM Guard
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.addedNodes.length > 0) {
