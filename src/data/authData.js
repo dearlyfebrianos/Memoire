@@ -6,7 +6,7 @@ export const CREDENTIALS = [
   },
   {
     username: "admin",
-    password: "memoireadmin2026",
+    password: "adminmemo2026",
     role: "admin",
   }
 ];
