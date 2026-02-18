@@ -118,12 +118,13 @@ export default function About() {
   return (
     <section id="about" className="relative z-10 py-24 px-6">
       <div className="max-w-4xl mx-auto">
+        {/* SECTION 1: CERITA KAMI */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="text-center mb-14"
+          className="text-center mb-20"
         >
           <div className="flex items-center justify-center gap-3 mb-8">
             <div className="h-px w-10 shimmer-accent" />
@@ -136,222 +137,152 @@ export default function About() {
             <div className="h-px w-10 shimmer-accent" />
           </div>
 
-          {/* Profiles Section */}
-          <div className="flex flex-wrap justify-center gap-12 mb-12 items-start">
-            {CREDENTIALS.map((user, i) => (
-              <CreatorCard key={user.username} user={user} i={i} />
-            ))}
-          </div>
-
           <h2
-            className="font-display"
+            className="font-display mb-14"
             style={{
               fontSize: "clamp(2rem, 5vw, 3.5rem)",
               fontWeight: 300,
               color: "rgba(255,255,255,0.92)",
             }}
           >
-            Tentang Tempat Ini
+            Cerita Kami
           </h2>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-3xl p-8 sm:p-12 mb-6"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            backdropFilter: "blur(30px)",
-            WebkitBackdropFilter: "blur(30px)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow:
-              "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)",
-          }}
-        >
-          <div className="flex flex-col md:flex-row gap-10 items-start">
-            <div className="shrink-0">
-              <div
-                className="w-24 h-24 rounded-full flex items-center justify-center font-display text-4xl"
-                style={{
-                  background: "rgba(232,196,160,0.08)",
-                  border: "1px solid rgba(232,196,160,0.2)",
-                  color: "#e8c4a0",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-                }}
-              >
-                ✦
-              </div>
-            </div>
-
-            <div className="flex-1">
-              <h3
-                className="font-display text-2xl sm:text-3xl mb-4"
-                style={{
-                  color: "rgba(255,255,255,0.9)",
-                  fontWeight: 300,
-                  fontStyle: "italic",
-                }}
-              >
-                Sebuah kehidupan yang diabadikan dalam bingkai-bingkai foto.
-              </h3>
-              <div
-                className="space-y-4 font-body text-sm leading-relaxed"
-                style={{ color: "rgba(255,255,255,0.55)" }}
-              >
-                <p>
-                  Inilah Memoire — arsip pribadi yang dibangun untuk menyimpan
-                  momen-momen penting. Bukan momen yang dipoles, tetapi momen
-                  yang nyata: momen spontan, momen keemasan, momen yang buram,
-                  momen di mana semua orang sedang tertawa.
-                </p>
-                <p>
-                  Setiap bab mewakili sebuah fase kehidupan. Lorong-lorong
-                  sekolah menengah atas, kekacauan indah di sekolah menengah
-                  pertama, dan setiap bandara, gunung, dan garis pantai di
-                  antaranya.
-                </p>
-                <p>
-                  Ingatan itu rapuh. Inilah cara saya melestarikan ingatan saya.
-                </p>
-              </div>
-
-              {/* Kutipan */}
-              <div
-                className="mt-8 pl-5 font-display text-lg italic"
-                style={{
-                  borderLeft: "2px solid rgba(232,196,160,0.3)",
-                  color: "rgba(232,196,160,0.7)",
-                  lineHeight: "1.6",
-                }}
-              >
-                "Hal terbaik tentang kenangan adalah menciptakannya."
-              </div>
-            </div>
+          {/* Profiles Section */}
+          <div className="flex flex-wrap justify-center gap-12 mb-16 items-start">
+            {CREDENTIALS.map((user, i) => (
+              <CreatorCard key={user.username} user={user} i={i} />
+            ))}
           </div>
+
+          {/* Inspiration Story */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="max-w-2xl mx-auto space-y-6 font-body text-sm leading-relaxed text-center"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            <p>
+              Memoire lahir dari sebuah perjalanan personal untuk menyentuh sisi
+              paling manusiawi dari teknologi: **Hati dan Kenangan**. Sebagai
+              pengembang, kami percaya bahwa setiap baris kode harus memiliki
+              jiwa.
+            </p>
+            <p>
+              Kami terinspirasi untuk membangun platform ini karena keresahan
+              akan betapa cepatnya momen berharga hilang di tengah banjirnya
+              informasi digital. Kami menciptakan tempat yang "hening", di mana
+              setiap foto bisa bernapas dan setiap cerita bisa terdengar kembali
+              sebagai warisan digital yang elegan.
+            </p>
+          </motion.div>
         </motion.div>
 
-        {/* Baris statistik */}
-        <div className="grid grid-cols-3 gap-4 mb-20">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.6 }}
-              className="text-center py-7 rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <div
-                className="font-display text-3xl sm:text-4xl mb-1"
-                style={{ color: "#e8c4a0", fontWeight: 300 }}
-              >
-                {stat.value}
-              </div>
-              <div
-                className="font-body text-xs uppercase"
-                style={{
-                  color: "rgba(255,255,255,0.35)",
-                  letterSpacing: "0.15em",
-                }}
-              >
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Tentang Kami / Cerita & Filosofi */}
+        {/* SECTION 2: TENTANG MEMOIRE */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="pt-16 border-t border-white/5"
+          transition={{ duration: 0.7 }}
+          className="text-center mb-14 pt-16 border-t border-white/5"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
-            <div className="lg:col-span-3 space-y-8">
-              <div>
-                <h3 className="font-display text-3xl text-[#e8c4a0] mb-6 tracking-tight">
-                  Tentang Kami & Cerita Kami
+          <h2
+            className="font-display mb-12"
+            style={{
+              fontSize: "clamp(2rem, 5vw, 3rem)",
+              fontWeight: 300,
+              color: "rgba(255,255,255,0.92)",
+            }}
+          >
+            Tentang Memoire
+          </h2>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-3xl p-8 sm:p-12 mb-12 text-left"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              backdropFilter: "blur(30px)",
+              WebkitBackdropFilter: "blur(30px)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow:
+                "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)",
+            }}
+          >
+            <div className="flex flex-col md:flex-row gap-10 items-start">
+              <div className="shrink-0 hidden md:block">
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center font-display text-3xl"
+                  style={{
+                    background: "rgba(232,196,160,0.08)",
+                    border: "1px solid rgba(232,196,160,0.2)",
+                    color: "#e8c4a0",
+                  }}
+                >
+                  ✦
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <h3
+                  className="font-display text-xl sm:text-2xl mb-6 italic"
+                  style={{ color: "rgba(255,255,255,0.9)", fontWeight: 300 }}
+                >
+                  Sebuah kehidupan yang diabadikan dalam bingkai-bingkai foto.
                 </h3>
                 <div
-                  className="space-y-6 font-body text-sm leading-relaxed"
-                  style={{ color: "rgba(255,255,255,0.5)" }}
+                  className="space-y-4 font-body text-xs sm:text-sm leading-relaxed"
+                  style={{ color: "rgba(255,255,255,0.55)" }}
                 >
                   <p>
-                    Memoire bukan sekadar proyek pengembangan web bagi saya; ia
-                    adalah sebuah perjalanan personal. Sebagai seorang Fullstack
-                    Developer, saya sering terfokus pada fungsionalitas dan
-                    kode, namun dalam proyek ini, saya ingin menyentuh sisi yang
-                    lebih manusiawi: **Hati dan Kenangan**.
+                    Inilah Memoire — arsip pribadi yang dibangun untuk menyimpan
+                    momen-momen penting. Bukan momen yang dipoles, tetapi momen
+                    yang nyata: momen spontan, momen keemasan, momen yang buram,
+                    momen di mana semua orang sedang tertawa.
                   </p>
                   <p>
-                    Owner terinspirasi untuk membangun platform ini karena
-                    keresahan akan betapa cepatnya momen-momen berharga hilang
-                    di tengah banjirnya informasi digital. Kami ingin
-                    menciptakan sebuah tempat yang "hening" — jauh dari
-                    hingar-bingar media sosial, di mana setiap foto bisa
-                    bernapas dan setiap cerita bisa terdengar kembali.
+                    Setiap bab mewakili sebuah fase kehidupan. Lorong-lorong
+                    sekolah menengah atas, kekacauan indah di sekolah menengah
+                    pertama, dan setiap bandara, gunung, dan garis pantai di
+                    antaranya.
                   </p>
-                  <p>
-                    Visi kami adalah menjadikan Memoire sebagai warisan digital
-                    yang elegan. Setiap baris kode yang ditulis di sini membawa
-                    misi untuk menjaga agar kenangan Anda tetap abadi, tajam,
-                    dan penuh rasa, bahkan setelah bertahun-tahun berlalu.
-                  </p>
+                </div>
+
+                <div className="mt-8 pl-5 font-display text-base italic border-l-2 border-[#e8c4a0]/30 text-[#e8c4a0]/70">
+                  "Hal terbaik tentang kenangan adalah menciptakannya."
                 </div>
               </div>
             </div>
+          </motion.div>
 
-            <div className="lg:col-span-2 space-y-6">
-              <div
-                className="p-8 rounded-[2rem] relative overflow-hidden group"
+          {/* Stats bar inside Tentang Memoire */}
+          <div className="grid grid-cols-3 gap-4">
+            {stats.map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.6 }}
+                className="text-center py-7 rounded-2xl"
                 style={{
-                  background: "rgba(232,196,160,0.03)",
-                  border: "1px solid rgba(232,196,160,0.1)",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
                 }}
               >
-                <div className="absolute top-0 right-0 p-4 opacity-10 font-display text-6xl">
-                  “
+                <div className="font-display text-2xl sm:text-3xl mb-1 text-[#e8c4a0] font-light">
+                  {stat.value}
                 </div>
-                <h4 className="font-display text-lg text-[#e8c4a0] mb-4">
-                  Filosofi Kami
-                </h4>
-                <p className="font-body text-xs leading-loose text-white/40 italic">
-                  "Kita membangun teknologi bukan untuk menggantikan ingatan,
-                  tetapi untuk memberinya tempat tinggal yang layak. Karena pada
-                  akhirnya, we are just a collection of memories."
-                </p>
-                <div className="mt-6 flex items-center gap-3">
-                  <div className="w-8 h-[1px] bg-[#e8c4a0]/30" />
-                  <span className="font-display text-[10px] uppercase tracking-widest text-[#e8c4a0]/60">
-                    The Developer
-                  </span>
+                <div className="font-body text-[10px] uppercase tracking-widest text-white/30">
+                  {stat.label}
                 </div>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-white/3 border border-white/5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#e8c4a0]/10 flex items-center justify-center text-lg">
-                  💡
-                </div>
-                <div>
-                  <div className="font-display text-xs text-white/80 uppercase tracking-widest">
-                    Inspirasi Utama
-                  </div>
-                  <div className="font-body text-[10px] text-white/30 mt-1">
-                    Digital Preservation & Human Legacies
-                  </div>
-                </div>
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
       </div>
