@@ -1,7 +1,8 @@
+// CREDENTIALS imported only for internal use in login()
 import { CREDENTIALS } from "./credentials";
 
-export { CREDENTIALS }; // Re-export if needed, or just use it internally.
-// We don't need to re-export generateAuthJS as it's not used in auth logic.
+// We don't re-export CREDENTIALS to avoid circular dependency confusion
+
 
 const SESSION_KEY = "memoire_session";
 
