@@ -5,6 +5,8 @@ export default function AdminSidebar({
   activeTab,
   setActiveTab,
   userRole,
+  username,
+  userAvatar,
   isCollapsed,
   onToggleCollapse,
 }) {
@@ -273,8 +275,21 @@ export default function AdminSidebar({
         className={`px-4 pt-6 border-t border-white/5 transition-all ${isCollapsed ? "flex justify-center" : "px-8"}`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#e8c4a0]/20 to-transparent border border-[#e8c4a0]/20 flex items-center justify-center font-display text-xs text-[#e8c4a0] shrink-0">
-            {userRole?.[0]?.toUpperCase()}
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#e8c4a0]/20 to-transparent border border-[#e8c4a0]/20 flex items-center justify-center font-display text-xs text-[#e8c4a0] shrink-0 overflow-hidden relative">
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt={username}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.parentElement.innerText =
+                    userRole?.[0]?.toUpperCase();
+                }}
+              />
+            ) : (
+              userRole?.[0]?.toUpperCase()
+            )}
           </div>
           {!isCollapsed && (
             <motion.div
@@ -282,8 +297,8 @@ export default function AdminSidebar({
               animate={{ opacity: 1 }}
               className="min-w-0"
             >
-              <p className="font-body text-[10px] text-white/80 truncate">
-                Admin Mode
+              <p className="font-body text-[10px] text-white/80 truncate capitalize">
+                {username}
               </p>
               <p className="font-body text-[8px] text-white/20 uppercase tracking-tighter">
                 {userRole}

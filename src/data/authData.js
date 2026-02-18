@@ -3,7 +3,7 @@ export const CREDENTIALS = [
     username: "dearly",
     password: "dearlyfebriano08",
     role: "owner",
-    avatar: "",
+    avatar: "https://dearly-personal-portofolio.vercel.app/profile/dearly.png",
     bio: ""
   },
   {

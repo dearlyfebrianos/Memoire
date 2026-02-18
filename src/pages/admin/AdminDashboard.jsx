@@ -297,6 +297,8 @@ export default function AdminDashboard() {
   const auth = useAuth();
   const isOwnerRole = auth.isOwner;
 
+  const currentUserData = CREDENTIALS.find((u) => u.username === auth.username);
+
   const {
     chapters: allChapters,
     allPhotos: allPhotosRaw,
@@ -400,6 +402,8 @@ export default function AdminDashboard() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           userRole={auth.role}
+          username={auth.username}
+          userAvatar={currentUserData?.avatar}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
         />
@@ -430,6 +434,8 @@ export default function AdminDashboard() {
                   setShowMobileSidebar(false);
                 }}
                 userRole={auth.role}
+                username={auth.username}
+                userAvatar={currentUserData?.avatar}
                 isCollapsed={false}
                 onToggleCollapse={() => setShowMobileSidebar(false)}
               />
