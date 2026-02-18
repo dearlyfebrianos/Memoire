@@ -59,14 +59,14 @@
     ]
   },
   {
-    "label": "woi",
-    "slug": "woi",
+    "label": "p",
+    "slug": "p",
     "years": "",
     "description": "",
     "emoji": "📸",
     "accentColor": "#e8c4a0",
     "coverGradient": "from-slate-900/40 to-gray-900/30",
-    "id": "woi",
+    "id": "p",
     "hidden": false,
     "photos": []
   }
