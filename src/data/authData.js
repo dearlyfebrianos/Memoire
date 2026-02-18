@@ -5,7 +5,7 @@ export const CREDENTIALS = [
     role: "owner",
     displayName: "Dearly F.I",
     avatar: "https://dearly-personal-portofolio.vercel.app/profile/dearly.png",
-    bio: "",
+    bio: "Fullstack Developer | Membangun pengalaman digital yang mulus dari ujung ke ujung dengan fokus pada keanggunan dan performa.",
   },
   {
     username: "admin",
