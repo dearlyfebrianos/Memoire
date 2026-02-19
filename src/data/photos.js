@@ -27,6 +27,21 @@ export const chapters = [
         date: "9, Februari 2026",
         tags: ["girl friend", "boy friend", "foto bersama"],
         hidden: true,
+      },
+      {
+        id: 1771511101854.17,
+        title: "Eshal dan kalung jangkar Dearly dalam sebuah kenangan tak terlupakan.",
+        caption: "Di balik liontin jangkar ini, tersimpan cerita kecil yang tak akan pernah tenggelam oleh waktu",
+        mediaItems: [
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771510929/fn6wj4wk9n8wv9a8pqco.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771510928/tqn2ddltijkiu0uwm40t.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771510927/uurslrujbugbdhnbermz.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771510926/ylgvpj7jbzdmntwyhq1v.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771510924/tmefdd05hksq56tzmjhk.jpg" }
+        ],
+        date: "Kamis, 19 Februari 2026",
+        tags: ["cinta", "pasangan", "jangkar", "ispel"],
+        hidden: false,
       }
     ],
   }
