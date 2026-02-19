@@ -29,6 +29,20 @@ export const chapters = [
         hidden: true,
       }
     ],
+  },
+  {
+    id: "chapter-admin",
+    label: "chapter-admin",
+    slug: "chapter-admin",
+    years: "2020 - 2023",
+    description: "Test chapter dari admin",
+    coverGradient: "from-slate-900/40 to-gray-900/30",
+    accentColor: "#2dd4bf",
+    emoji: "💫",
+    hidden: false,
+    photos: [
+
+    ],
   }
 ];
 
