@@ -41,7 +41,17 @@ export const chapters = [
     emoji: "💫",
     hidden: false,
     photos: [
-
+      {
+        id: 1771472320796.7356,
+        title: "TEST UPLOAD GAMBAR DI CHAPTER",
+        caption: "ya itulah",
+        mediaItems: [
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771472275/mzyb6nonfjrtocfijb4q.png" }
+        ],
+        date: "19 Februari 2026",
+        tags: ["test"],
+        hidden: false,
+      }
     ],
   }
 ];
