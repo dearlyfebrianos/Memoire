@@ -12,7 +12,7 @@ export const CREDENTIALS = [
     password: "adminmemo2026",
     role: "admin",
     displayName: "Admin Memo",
-    avatar: "https://img.freepik.com/free-vector/business-user-cog_78370-7040.jpg",
+    avatar: "https://www.pngmart.com/files/21/Admin-Profile-Vector-PNG-Clipart.png",
     bio: "Tidak bisa berkata kata, saya hanyalah administrator yang membantu pengguna upload foto supaya muncul pada halaman utama."
   }
 ];
