@@ -103,6 +103,24 @@
     "coverGradient": "from-slate-900/40 to-gray-900/30",
     "id": "uprak",
     "hidden": false,
-    "photos": []
+    "photos": [
+      {
+        "title": "GAJELAS AREKE",
+        "caption": "MBUH",
+        "mediaItems": [
+          {
+            "type": "image",
+            "url": "https://res.cloudinary.com/dg3awuzug/image/upload/v1771827830/ct3l0jie6upsz5xsadcm.jpg"
+          }
+        ],
+        "date": "2026",
+        "tags": [
+          "jagad",
+          "dearly"
+        ],
+        "id": 1771827917960.4905,
+        "hidden": false
+      }
+    ]
   }
 ]
