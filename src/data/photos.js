@@ -44,6 +44,20 @@ export const chapters = [
         hidden: false,
       }
     ],
+  },
+  {
+    id: "uprak",
+    label: "UPRAK",
+    slug: "uprak",
+    years: "2026",
+    description: "AHDSADUSHUDHSAUDAS",
+    coverGradient: "from-slate-900/40 to-gray-900/30",
+    accentColor: "#f472b6",
+    emoji: "😎",
+    hidden: false,
+    photos: [
+
+    ],
   }
 ];
 
