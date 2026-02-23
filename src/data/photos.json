@@ -92,5 +92,17 @@
         "hidden": false
       }
     ]
+  },
+  {
+    "label": "UPRAK",
+    "slug": "uprak",
+    "years": "2026",
+    "description": "AHDSADUSHUDHSAUDAS",
+    "emoji": "😎",
+    "accentColor": "#f472b6",
+    "coverGradient": "from-slate-900/40 to-gray-900/30",
+    "id": "uprak",
+    "hidden": false,
+    "photos": []
   }
 ]
