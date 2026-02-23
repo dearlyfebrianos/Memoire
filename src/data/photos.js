@@ -61,7 +61,8 @@ export const chapters = [
         title: "GAJELAS AREKE",
         caption: "MBUH",
         mediaItems: [
-          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771827830/ct3l0jie6upsz5xsadcm.jpg" }
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771827830/ct3l0jie6upsz5xsadcm.jpg" },
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771828025/xx2psillyjytrh7gonwd.jpg" }
         ],
         date: "2026",
         tags: ["jagad", "dearly"],
