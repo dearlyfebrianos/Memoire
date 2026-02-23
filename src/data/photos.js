@@ -56,7 +56,17 @@ export const chapters = [
     emoji: "😎",
     hidden: false,
     photos: [
-
+      {
+        id: 1771827917960.4905,
+        title: "GAJELAS AREKE",
+        caption: "MBUH",
+        mediaItems: [
+          { type: "image", url: "https://res.cloudinary.com/dg3awuzug/image/upload/v1771827830/ct3l0jie6upsz5xsadcm.jpg" }
+        ],
+        date: "2026",
+        tags: ["jagad", "dearly"],
+        hidden: false,
+      }
     ],
   }
 ];
