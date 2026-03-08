@@ -44,6 +44,20 @@ export const chapters = [
         hidden: false,
       }
     ],
+  },
+  {
+    id: "yearbook-xii-2",
+    label: "YEARBOOK XII-2",
+    slug: "yearbook-xii-2",
+    years: "2023 - 2026",
+    description: "Sebuah kenangan bersama satu angkatan dari kelas XII-1 hingga XII-6 ketika tanggal 31 Maret 2026 yang dimana kita melakukan sesi foto pada lapangan Unitomo untuk mendapatkan angle yang baik serta kita menunggu hasil dari penerimaan SNBP",
+    coverGradient: "from-slate-900/40 to-gray-900/30",
+    accentColor: "#e1ff00",
+    emoji: "🏫",
+    hidden: false,
+    photos: [
+
+    ],
   }
 ];
 
