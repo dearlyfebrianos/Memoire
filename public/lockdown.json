@@ -1,1 +1,8 @@
-{ "active": false, "reason": "", "timestamp": "" }
+{
+  "active": true,
+  "lockdownAll": false,
+  "routes": ["/gallery"],
+  "reason": "Halaman Gallery sedang dalam optimasi media agar lebih cepat diakses.",
+  "mediaUrl": "",
+  "timestamp": 1710320000000
+}

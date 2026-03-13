@@ -23,8 +23,8 @@ import NotFound from "./components/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminGuard from "./pages/admin/AdminGuard";
 import AdminLogin from "./pages/admin/AdminLogin";
-import LockdownCheck from "./components/LockdownCheck";
-import AnnounceBar from "./components/AnnounceBar";
+import SaturnLockdown from "./components/utils/SaturnLockdown";
+import SaturnAnnounce from "./components/utils/SaturnAnnounce";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -207,9 +207,6 @@ const SEC_KEY = "_m_sys_integrity_v2";
 const SEC_VAL = "BAN_VOX_99";
 const DEV_KEY = "_m_dev_mode_active";
 
-// Dynamically derive master hash from authData.js at runtime
-// When owner changes lockdownCode via dashboard → pushes new authData.js →
-// Vercel rebuilds → this line picks up the new value automatically.
 const MASTER_HASH = btoa(SECURITY_CONFIG.lockdownCode);
 
 function NuclearLock({ onUnlock }) {
@@ -391,10 +388,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <SecurityGuard>
-        <LockdownCheck>
-          <AnnounceBar />
+        <SaturnLockdown>
+          <SaturnAnnounce />
           <AppContent />
-        </LockdownCheck>
+        </SaturnLockdown>
       </SecurityGuard>
     </BrowserRouter>
   );

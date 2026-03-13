@@ -1,7 +1,8 @@
 {
-  "active": false,
-  "message": "",
-  "type": "",
-  "link": "",
-  "linkText": ""
+  "active": true,
+  "message": "Memoire: Sesi foto terbaru telah ditambahkan ke rute Gallery.",
+  "type": "warning",
+  "updatedAt": 1710321000000,
+  "link": "/gallery",
+  "linkText": "Lihat Foto"
 }
