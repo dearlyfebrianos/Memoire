@@ -1,22 +1,3 @@
-// LockdownCheck.jsx — AutoGenerator-App
-// ─────────────────────────────────────────────────────────────────────────────
-// CARA PAKAI:
-//   Wrap seluruh App.jsx dengan <LockdownCheck>
-//   import LockdownCheck from './components/LockdownCheck';
-//
-// CARA KERJA:
-//   - Fetch /lockdown.json setiap mount
-//   - Jika active=true dan routes=[]:   FULL lockdown → semua halaman kena
-//   - Jika active=true dan routes=["/cv", "/surat-lamaran"]:
-//       ROUTE lockdown → hanya path yang cocok kena, yang lain bebas
-//   - Navbar TIDAK pernah kena lockdown (hanya konten halaman)
-//
-// CONTOH INTEGRASI ROUTE LOCKDOWN DI APP.JSX:
-//   <LockdownCheck currentPath={location.pathname}>
-//     <Routes>...</Routes>
-//   </LockdownCheck>
-// ─────────────────────────────────────────────────────────────────────────────
-
 import { useState, useEffect } from 'react';
 
 function matchRoute(lockdownRoutes, currentPath) {
